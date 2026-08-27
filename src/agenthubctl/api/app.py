@@ -16,6 +16,8 @@ def list_agents():
 
 def get_agent(name: str):
     status = _status_port.get(name)
+    if status is None:
+        raise connexion.ProblemException(status=404, title="Agent not found")
     return status.model_dump(mode="json")
 
 
