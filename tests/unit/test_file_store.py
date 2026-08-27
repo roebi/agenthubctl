@@ -16,3 +16,9 @@ def test_report_then_get_returns_the_reported_status(tmp_path):
     assert result.status == StatusValue.BLOCKED
     assert result.message == "needs deploy approval"
     assert result.timestamp == ts
+
+
+def test_get_returns_none_for_unknown_agent(tmp_path):
+    store = FileStatusStore(base_dir=tmp_path)
+
+    assert store.get("never-reported") is None
