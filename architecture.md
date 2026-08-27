@@ -118,7 +118,10 @@ agenthubctl/
 ### cli.py
 - Responsibility: thin entry point; wires a concrete FileStatusStore
   and TtydTerminalAdapter into api.app.create_app and runs it.
-- Public interface: `agenthubctl serve` command.
+- Public interface: `agenthubctl` (Typer collapses a single
+  `@app.command()` to the app's default command directly - there is
+  no separate `serve` subcommand word to type; corrected from this
+  document's original claim after a test caught the discrepancy).
 - Dependencies: api.app.create_app; concrete adapters - no logic of
   its own.
 
