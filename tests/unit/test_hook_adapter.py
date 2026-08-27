@@ -23,3 +23,12 @@ def test_hook_adapter_reports_blocked_on_notification_event():
     adapter.handle_hook_event({"hook_event_name": "Notification"})
 
     assert port.reported == [("web-dashboard", StatusValue.BLOCKED, None)]
+
+
+def test_hook_adapter_reports_done_on_stop_event():
+    port = FakeStatusPort()
+    adapter = HookAdapter(agent_id="data-pipeline", status_port=port)
+
+    adapter.handle_hook_event({"hook_event_name": "Stop"})
+
+    assert port.reported == [("data-pipeline", StatusValue.DONE, None)]
