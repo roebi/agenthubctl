@@ -1,0 +1,134 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "agenthubctl",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/agents": {
+      "get": {
+        "operationId": "agenthubctl.api.app.list_agents",
+        "responses": {
+          "200": {
+            "description": "All agent statuses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AgentStatus" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents/{name}": {
+      "get": {
+        "operationId": "agenthubctl.api.app.get_agent",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Single agent status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AgentStatus" }
+              }
+            }
+          },
+          "404": { "description": "Agent not found" }
+        }
+      }
+    },
+    "/agents/{name}/status": {
+      "post": {
+        "operationId": "agenthubctl.api.app.report_agent_status",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/StatusReport" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Status recorded" }
+        }
+      }
+    },
+    "/agents/{name}/terminal": {
+      "get": {
+        "operationId": "agenthubctl.api.app.get_agent_terminal",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Terminal endpoint for the agent",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TerminalEndpoint" }
+              }
+            }
+          },
+          "404": { "description": "Agent not found" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentStatus": {
+        "type": "object",
+        "required": ["name", "status", "timestamp"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["working", "blocked", "idle", "done"]
+          },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "message": { "type": "string", "nullable": true }
+        }
+      },
+      "StatusReport": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["working", "blocked", "idle", "done"]
+          },
+          "message": { "type": "string", "nullable": true }
+        }
+      },
+      "TerminalEndpoint": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string" }
+        }
+      }
+    }
+  }
+}
