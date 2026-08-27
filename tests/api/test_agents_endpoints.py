@@ -21,3 +21,11 @@ def test_get_agents_returns_all_statuses(client):
     assert response.status_code == 200
     names = {agent["name"] for agent in response.json()}
     assert names == {"web-dashboard"}
+
+
+def test_get_agent_by_name_returns_that_agent(client):
+    response = client.get("/agents/web-dashboard")
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "web-dashboard"
+    assert response.json()["status"] == "blocked"
