@@ -8,5 +8,8 @@ class HookAdapter:
         self._status_port = status_port
 
     def handle_hook_event(self, payload: dict) -> None:
-        if payload.get("hook_event_name") == "Notification":
+        event = payload.get("hook_event_name")
+        if event == "Notification":
             self._status_port.report(self._agent_id, StatusValue.BLOCKED)
+        elif event == "Stop":
+            self._status_port.report(self._agent_id, StatusValue.DONE)
