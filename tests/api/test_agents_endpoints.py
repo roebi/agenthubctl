@@ -58,3 +58,16 @@ def test_get_agent_terminal_returns_the_resolved_endpoint(tmp_path):
 
     assert response.status_code == 200
     assert response.json()["url"] == "http://127.0.0.1:7681"
+
+
+def test_get_agent_terminal_returns_404_for_unresolvable_agent(tmp_path):
+    from agenthubctl.adapters.terminal.ttyd_adapter import TtydTerminalAdapter
+
+    store = FileStatusStore(base_dir=tmp_path)
+    terminal = TtydTerminalAdapter(endpoints={})
+    app = app_module.create_app(status_port=store, terminal_port=terminal)
+    client = app.test_client()
+
+    response = client.get("/agents/never-mapped/terminal")
+
+    assert response.status_code == 404
