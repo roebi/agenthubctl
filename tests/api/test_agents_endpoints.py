@@ -35,3 +35,11 @@ def test_get_agent_returns_404_for_unknown_agent(client):
     response = client.get("/agents/never-reported")
 
     assert response.status_code == 404
+
+
+def test_post_agent_status_records_the_status(client):
+    response = client.post("/agents/data-pipeline/status", json={"status": "working"})
+
+    assert response.status_code == 204
+    follow_up = client.get("/agents/data-pipeline")
+    assert follow_up.json()["status"] == "working"
