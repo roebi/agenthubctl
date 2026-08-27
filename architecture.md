@@ -138,13 +138,13 @@ this app).
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Language/runtime | Python 3.12/3.13, src layout | skill default; matches sw-dev-agent-framework's own runtime |
+| Language/runtime | Python 3.14 only, src layout, no version matrix | newest stable Python pinned per explicit instruction (3.15 is pre-release) |
 | CLI | Typer | skill default; thin wrapper, free --install-completion |
 | HTTP API | Connexion v3, openapi.json written first | his API-first default; satisfies FR-06 |
 | Testing | pytest + pytest-cov | skill default |
-| Dependency management | uv | skill default |
+| Dependency management | uv | skill default; also used to install/pin Python 3.14 itself |
 | Linting | ruff | skill default |
-| CI | GitHub Actions, Python 3.13 matrix, plus security gates | skill default + NFR-02 (ShellCheck, semgrep/bandit, Trivy/Grype, DAST) |
+| CI | GitHub Actions, single Python 3.14 job, plus security gates | skill default (minus matrix, per pinned-version instruction) + NFR-02 (ShellCheck, semgrep/bandit, Trivy/Grype, DAST) |
 | Status store | flat directory, one JSON file per agent, tmp+rename | FR-04, NFR-04; KISS - no DB needed at this scale |
 | Terminal transport | tmux + ttyd inside each agent container | FR-08, FR-09; avoids building a custom PTY-over-websocket bridge |
 | Containerization | rootless Podman, reentrant build/run scripts | NFR-01; reuses the existing claude-code-podman scaffold |
