@@ -1,11 +1,13 @@
 from pathlib import Path
 
 import connexion
+from starlette.responses import HTMLResponse
 
 from agenthubctl.domain.models import StatusValue
 from agenthubctl.domain.ports import AgentStatusPort, AgentTerminalAccessPort
 
 _SPEC_PATH = Path(__file__).parent / "openapi.json"
+_DASHBOARD_PATH = Path(__file__).parent.parent / "dashboard" / "static" / "index.html"
 
 _status_port: AgentStatusPort | None = None
 _terminal_port: AgentTerminalAccessPort | None = None
@@ -41,4 +43,9 @@ def create_app(status_port: AgentStatusPort, terminal_port: AgentTerminalAccessP
 
     app = connexion.AsyncApp(__name__)
     app.add_api(_SPEC_PATH)
+    app.add_url_rule("/", view_func=_serve_dashboard)
     return app
+
+
+async def _serve_dashboard(request):
+    return HTMLResponse(_DASHBOARD_PATH.read_text())

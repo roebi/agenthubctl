@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agenthubctl</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #111; color: #eee; }
+  h1 { font-size: 1.1rem; color: #888; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 0.5rem 1rem; border-bottom: 1px solid #333; }
+  .status { padding: 0.15rem 0.5rem; border-radius: 0.3rem; font-size: 0.85rem; }
+  .working { background: #1e4620; color: #7fdb7f; }
+  .blocked { background: #4a1e1e; color: #ff8080; }
+  .idle { background: #3a3a1e; color: #e0e080; }
+  .done { background: #1e3a4a; color: #80c0ff; }
+  a.attach { color: #7fb0ff; text-decoration: none; }
+  a.attach:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<h1>agenthubctl</h1>
+<table id="agents">
+  <thead><tr><th>Agent</th><th>Status</th><th>Message</th><th>Updated</th><th></th></tr></thead>
+  <tbody></tbody>
+</table>
+
+<script>
+async function refresh() {
+  const res = await fetch("/agents");
+  const agents = await res.json();
+  const tbody = document.querySelector("#agents tbody");
+  tbody.innerHTML = "";
+  for (const agent of agents.sort((a, b) => a.name.localeCompare(b.name))) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${agent.name}</td>
+      <td><span class="status ${agent.status}">${agent.status}</span></td>
+      <td>${agent.message ?? ""}</td>
+      <td>${new Date(agent.timestamp).toLocaleTimeString()}</td>
+      <td><a class="attach" href="#" data-name="${agent.name}">attach</a></td>
+    `;
+    tbody.appendChild(tr);
+  }
+  for (const link of document.querySelectorAll("a.attach")) {
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const name = event.target.dataset.name;
+      const res = await fetch(`/agents/${name}/terminal`);
+      if (res.ok) {
+        const { url } = await res.json();
+        window.open(url, "_blank");
+      }
+    });
+  }
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
