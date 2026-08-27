@@ -2,6 +2,7 @@ from pathlib import Path
 
 import connexion
 
+from agenthubctl.domain.models import StatusValue
 from agenthubctl.domain.ports import AgentStatusPort, AgentTerminalAccessPort
 
 _SPEC_PATH = Path(__file__).parent / "openapi.json"
@@ -22,7 +23,8 @@ def get_agent(name: str):
 
 
 def report_agent_status(name: str, body: dict):
-    raise NotImplementedError
+    _status_port.report(name, StatusValue(body["status"]), message=body.get("message"))
+    return None, 204
 
 
 def get_agent_terminal(name: str):
