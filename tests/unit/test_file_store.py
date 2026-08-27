@@ -22,3 +22,13 @@ def test_get_returns_none_for_unknown_agent(tmp_path):
     store = FileStatusStore(base_dir=tmp_path)
 
     assert store.get("never-reported") is None
+
+
+def test_list_returns_all_reported_statuses(tmp_path):
+    store = FileStatusStore(base_dir=tmp_path)
+    store.report("web-dashboard", StatusValue.BLOCKED)
+    store.report("data-pipeline", StatusValue.WORKING)
+
+    names = {status.name for status in store.list()}
+
+    assert names == {"web-dashboard", "data-pipeline"}
