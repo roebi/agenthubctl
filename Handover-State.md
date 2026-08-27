@@ -1,10 +1,20 @@
-skill: orchestrate-sw-dev-en
-goal: Build agenthubctl, a hexagonal status and terminal-attach control hub for n parallel coding agent containers (Claude Code, Codex, etc.), exposing status via OpenAPI and a minimal dashboard, with full in-browser terminal attach.
-current_phase: implement
-results:
-  - phase: requirements
-    status: done
-    output: requirements.md written with 9 functional and 5 non-functional requirements
-  - phase: design
-    status: done
-    output: architecture.md written - 10 components, 4 open questions
+skill: apply-tdd-loop-en
+entry_point: A
+language: Python 3.14
+test_framework: pytest
+requirements:
+  - [ ] FR-01: report an agent's status (working|blocked|idle|done) with optional message and timestamp
+  - [ ] FR-02: return the status of all registered agents
+  - [ ] FR-03: return the status of a single named agent
+  - [ ] FR-04: persist each agent's most recent status across process restarts
+  - [ ] FR-05: support >=2 agent types via event-driven and interval-based collectors
+  - [ ] FR-06: expose an OpenAPI HTTP interface for status
+  - [ ] FR-07: minimal auto-refreshing web dashboard
+  - [ ] FR-08: full in-browser terminal attach per agent
+  - [ ] FR-09: real scrollback/rendering on attach, not replay
+current_iteration: 1
+current_phase: RED
+last_test_added: null
+last_code_change: null
+last_green_commit: 12d6cba
+exit_condition_met: false
