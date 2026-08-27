@@ -16,5 +16,5 @@ current_iteration: 10
 current_phase: RED
 last_test_added: test_poll_adapter_run_forever_calls_run_once_each_interval_via_injected_sleep
 last_code_change: PollAdapter.run_forever with injectable sleep_fn
-last_green_commit: PLACEHOLDER
+last_green_commit: 9d92308366423236d7edbbdd1cf311e5d8232818
 exit_condition_met: false
