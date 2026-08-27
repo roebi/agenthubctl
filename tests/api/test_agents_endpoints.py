@@ -71,3 +71,11 @@ def test_get_agent_terminal_returns_404_for_unresolvable_agent(tmp_path):
     response = client.get("/agents/never-mapped/terminal")
 
     assert response.status_code == 404
+
+
+def test_dashboard_route_serves_html(client):
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "agenthubctl" in response.text
