@@ -32,3 +32,12 @@ def test_list_returns_all_reported_statuses(tmp_path):
     names = {status.name for status in store.list()}
 
     assert names == {"web-dashboard", "data-pipeline"}
+
+
+def test_report_leaves_no_leftover_tmp_file(tmp_path):
+    store = FileStatusStore(base_dir=tmp_path)
+
+    store.report("web-dashboard", StatusValue.WORKING)
+
+    tmp_files = list(tmp_path.glob("*.tmp"))
+    assert tmp_files == []
