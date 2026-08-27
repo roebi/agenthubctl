@@ -15,7 +15,8 @@ def list_agents():
 
 
 def get_agent(name: str):
-    raise NotImplementedError
+    status = _status_port.get(name)
+    return status.model_dump(mode="json")
 
 
 def report_agent_status(name: str, body: dict):
