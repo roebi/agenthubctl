@@ -29,6 +29,8 @@ def report_agent_status(name: str, body: dict):
 
 def get_agent_terminal(name: str):
     url = _terminal_port.resolve(name)
+    if url is None:
+        raise connexion.ProblemException(status=404, title="Agent terminal not found")
     return {"url": url}
 
 
