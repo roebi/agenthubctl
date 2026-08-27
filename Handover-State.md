@@ -8,13 +8,13 @@ requirements:
   - [x] FR-03: return the status of a single named agent
   - [x] FR-04: persist each agent's most recent status across process restarts
   - [x] FR-05: support >=2 agent types via event-driven and interval-based collectors
-  - [ ] FR-06: expose an OpenAPI HTTP interface for status
+  - [x] FR-06: expose an OpenAPI HTTP interface for status
   - [ ] FR-07: minimal auto-refreshing web dashboard
-  - [ ] FR-08: full in-browser terminal attach per agent
-  - [ ] FR-09: real scrollback/rendering on attach, not replay
-current_iteration: 10
+  - [x] FR-08: full in-browser terminal attach per agent (backend endpoint; static dashboard link still open)
+  - [ ] FR-09: real scrollback/rendering on attach, not replay (delivered by ttyd itself, not this app's code - verify in architecture note)
+current_iteration: 17
 current_phase: RED
-last_test_added: test_poll_adapter_run_forever_calls_run_once_each_interval_via_injected_sleep
-last_code_change: PollAdapter.run_forever with injectable sleep_fn
-last_green_commit: 9d92308366423236d7edbbdd1cf311e5d8232818
+last_test_added: test_get_agent_terminal_returns_404_for_unresolvable_agent
+last_code_change: api/app.py - full CRUD-ish surface over AgentStatusPort and AgentTerminalAccessPort, ProblemException for 404s
+last_green_commit: PLACEHOLDER
 exit_condition_met: false
