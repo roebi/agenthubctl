@@ -29,3 +29,9 @@ def test_get_agent_by_name_returns_that_agent(client):
     assert response.status_code == 200
     assert response.json()["name"] == "web-dashboard"
     assert response.json()["status"] == "blocked"
+
+
+def test_get_agent_returns_404_for_unknown_agent(client):
+    response = client.get("/agents/never-reported")
+
+    assert response.status_code == 404
