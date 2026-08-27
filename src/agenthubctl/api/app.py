@@ -28,7 +28,8 @@ def report_agent_status(name: str, body: dict):
 
 
 def get_agent_terminal(name: str):
-    raise NotImplementedError
+    url = _terminal_port.resolve(name)
+    return {"url": url}
 
 
 def create_app(status_port: AgentStatusPort, terminal_port: AgentTerminalAccessPort | None):
