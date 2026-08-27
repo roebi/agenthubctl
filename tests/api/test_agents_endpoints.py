@@ -43,3 +43,18 @@ def test_post_agent_status_records_the_status(client):
     assert response.status_code == 204
     follow_up = client.get("/agents/data-pipeline")
     assert follow_up.json()["status"] == "working"
+
+
+def test_get_agent_terminal_returns_the_resolved_endpoint(tmp_path):
+    from agenthubctl.adapters.terminal.ttyd_adapter import TtydTerminalAdapter
+
+    store = FileStatusStore(base_dir=tmp_path)
+    store.report("web-dashboard", StatusValue.BLOCKED)
+    terminal = TtydTerminalAdapter(endpoints={"web-dashboard": "http://127.0.0.1:7681"})
+    app = app_module.create_app(status_port=store, terminal_port=terminal)
+    client = app.test_client()
+
+    response = client.get("/agents/web-dashboard/terminal")
+
+    assert response.status_code == 200
+    assert response.json()["url"] == "http://127.0.0.1:7681"
