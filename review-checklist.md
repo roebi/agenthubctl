@@ -2,12 +2,12 @@
 
 Skill: code-review-en
 Round: 4 (minor fixes 9-22 applied; round 3 verified fix 3 with tmux)
-Reviewed commit: 7cc1414 (main), plus the round-4 fixes below
+Reviewed commit: 8c5ad41 (main), plus the round-4 fixes below
 Date: 2026-11-07
 Environment: Python 3.14.10, uv, ruff 0.16.5, tmux 3.3a. No podman in this
-container. Round 2 (commit 57ecb4c + fix 23) found the same state minus the
+container. Round 2 (commit ca929f3 + fix 23) found the same state minus the
 tmux run. Round 1 (static only, commit
-62fd50f) is in git history; its fixes are summarized under Fix History.
+0998964) is in git history; its fixes are summarized under Fix History.
 
 ## Requirements Coverage
 
@@ -66,19 +66,19 @@ output: review-checklist.md round 4 - 0 critical, 0 major, 0 minor open (all 9 r
 
 | Fix | Severity | State | Commit |
 |---|---|---|---|
-| 1 stored XSS in dashboard | critical | fixed, verified (tests green) | 3ab9bbd |
-| 2 FR-08 CLI wiring (--terminal) | critical | fixed, verified | 1ea42d7 |
-| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, verified in round 3 (4/4 pass with tmux 3.3a, after fix 24) | dd267b5 |
-| 4 module globals in api/app.py | major | fixed, verified | 3ab9bbd |
-| 5 NFR-04 shared tmp file | major | fixed, verified | 19e918e |
-| 6 agent name validation | major | fixed, verified (incl. HTTP 400 probes) | 19e918e, 3ab9bbd |
-| 7 FR-05 collectors wired | major | resolved: hook route wired, polling descoped for v1 | 3ab9bbd, e0794c5, bd3d095 |
-| 8 terminal_port=None | minor | fixed (side effect of 4) | 3ab9bbd |
-| 12 magic numbers | minor | fixed | 3ab9bbd |
-| 14 architecture.md drift | minor | fixed | b86d404 |
-| 16 duplicate requirements files | minor | fixed | 6d3ffe9 |
-| 17 ruff check failed (9 errors on ruff 0.16 defaults) | major | fixed, verified | 5bbb65a |
-| 18 no .gitignore | minor | fixed | 5bbb65a |
+| 1 stored XSS in dashboard | critical | fixed, verified (tests green) | a72824d |
+| 2 FR-08 CLI wiring (--terminal) | critical | fixed, verified | 1e79eaa |
+| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, verified in round 3 (4/4 pass with tmux 3.3a, after fix 24) | 4acfe4f |
+| 4 module globals in api/app.py | major | fixed, verified | a72824d |
+| 5 NFR-04 shared tmp file | major | fixed, verified | 1200797 |
+| 6 agent name validation | major | fixed, verified (incl. HTTP 400 probes) | 1200797, a72824d |
+| 7 FR-05 collectors wired | major | resolved: hook route wired, polling descoped for v1 | a72824d, 5865150, 52ea4d1 |
+| 8 terminal_port=None | minor | fixed (side effect of 4) | a72824d |
+| 12 magic numbers | minor | fixed | a72824d |
+| 14 architecture.md drift | minor | fixed | 755e619 |
+| 16 duplicate requirements files | minor | fixed | b6e8e76 |
+| 17 ruff check failed (9 errors on ruff 0.16 defaults) | major | fixed, verified | 46efa8d |
+| 18 no .gitignore | minor | fixed | 46efa8d |
 | 23 hub image installed tmux, curl and an unchecksummed ttyd binary it never uses (agent-terminal.sh is not in the image; architecture.md puts tmux+ttyd in agent containers) | major | fixed: removed from Dockerfile; image build not verified (no podman here) | this round |
 | 24 FR-09 test helper used `-t =agent-1` as a pane target; tmux 3.3a rejects that ("can't find pane"), exact-match pane targets need `=agent-1:`. agent-terminal.sh itself was correct (session targets) | critical (test bug, found on first tmux run) | fixed, verified (3 consecutive green runs; mutation check) | this round |
 | 9 tests for FR-04 restart, FR-06 /openapi.json, FR-07 refresh | minor | fixed, verified | round 4 |
