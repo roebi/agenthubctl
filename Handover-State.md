@@ -23,7 +23,7 @@ verified_clean:
 known_gaps:
   - Dockerfile never actually built - no podman available in the session that wrote it; tmux+ttyd wiring for FR-08/09 is unverified beyond the paper design
   - no end-to-end test of the attach path (container -> /agents/{name}/terminal -> real ttyd connection)
-  - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter is unit-tested but intentionally unwired
+  - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter and its tests removed, recoverable from git history
   - HookAdapter only handles Notification/Stop - guessed payload shape, never confirmed against a real Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
   - repo never pushed to GitHub - no remote, no v0.1.0 tag, release.yml has never actually run

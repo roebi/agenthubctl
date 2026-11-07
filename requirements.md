@@ -52,5 +52,5 @@ NFR-05: Maintainability - the status persistence mechanism must be
 - Interval-based (polling) status collection for agent types that
   cannot report on their own - descoped for v1 on 2026-11-07 because
   no poll-based agent type or blocked-state heuristic was chosen.
-  PollAdapter stays in the codebase as an unwired, unit-tested
-  extension point for a later version.
+  PollAdapter was removed from the codebase; it can be recovered from
+  git history for a later version.

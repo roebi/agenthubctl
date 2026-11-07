@@ -3,8 +3,8 @@
 ## Summary
 
 A small hexagonal Python service. A status port and a terminal-access
-port sit at the center; two collector adapters (push via hooks, poll
-as fallback) and one store adapter feed the status port; a Connexion
+port sit at the center; one collector adapter (push via
+hooks) and one store adapter feed the status port; a Connexion
 v3 API and a static HTML dashboard sit on top; a thin Typer CLI wires
 concrete adapters together and starts the service. One module per
 responsibility, nothing added beyond what FR-01..FR-09 require.
@@ -23,7 +23,6 @@ agenthubctl/
     adapters/
       collectors/
         hook_adapter.py           # HookAdapter (push)
-        poll_adapter.py           # PollAdapter (fallback)
       store/
         file_store.py             # FileStatusStore (AgentStatusPort impl)
       terminal/
@@ -37,7 +36,6 @@ agenthubctl/
     unit/
       test_file_store.py
       test_hook_adapter.py
-      test_poll_adapter.py
       test_ttyd_adapter.py
     api/
       test_agents_endpoints.py
@@ -85,17 +83,6 @@ agenthubctl/
   event-driven case).
 - Public interface: `handle_hook_event(payload: dict) -> None`.
 - Dependencies: an injected AgentStatusPort.
-
-### adapters.collectors.poll_adapter.PollAdapter
-- Status: descoped for v1 - unit-tested but not wired into cli.py or
-  api.app (requirements.md, Out of Scope).
-- Responsibility: fallback collector for agent types without a hook
-  system; checks status on an interval (FR-05 interval-based case).
-- Public interface:
-  `PollAdapter(agent_id, check_fn, port, interval_seconds)`,
-  `run_once() -> None`, `run_forever() -> None`.
-- Dependencies: an injected AgentStatusPort; an injected `check_fn`
-  callable (no direct subprocess or PTY coupling).
 
 ### adapters.terminal.ttyd_adapter.TtydTerminalAdapter
 - Responsibility: implements AgentTerminalAccessPort by resolving an
@@ -172,9 +159,6 @@ this app).
   constructor; tests use a tmp directory, no real status dir needed.
 - HookAdapter: takes AgentStatusPort as a constructor dependency
   (protocol); tests use an in-memory fake port.
-- PollAdapter: `check_fn` is injected; tests supply a fake callable
-  returning canned statuses - no real subprocess or container
-  involved, per the subprocess DI rule.
 - TtydTerminalAdapter: the agent-id-to-endpoint mapping is injected;
   tests need no real container or ttyd process.
 - api.app: `create_app(status_port, terminal_port)` takes both ports
@@ -191,7 +175,8 @@ this app).
 - Which agent type is the second (poll-based) one - Codex or
   something else - and what its blocked-state heuristic looks like.
   Resolved for v1 by descoping: polling is out of scope (see
-  requirements.md); PollAdapter remains an unwired extension point.
+  requirements.md); PollAdapter was removed on 2026-11-07 and can be
+  recovered from git history (commit before its removal) if needed.
 - Dashboard refresh mechanism - FR-07 allows polling or SSE; plan to
   start with polling as the simpler option unless a reason emerges
   during implementation.

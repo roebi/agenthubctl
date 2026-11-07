@@ -90,7 +90,7 @@ pass.
 | 4 module globals in api/app.py | major | fixed, unverified | 3ab9bbd |
 | 5 NFR-04 shared tmp file | major | fixed, unverified | 19e918e |
 | 6 agent name validation | major | fixed, unverified | 19e918e, 3ab9bbd |
-| 7 FR-05 collectors wired | major | resolved: hook route wired (3ab9bbd); interval-based polling descoped for v1 in requirements.md, PollAdapter kept as an unwired extension point | 3ab9bbd + this commit |
+| 7 FR-05 collectors wired | major | resolved: hook route wired (3ab9bbd); interval-based polling descoped for v1 in requirements.md, PollAdapter removed | 3ab9bbd, e0794c5, removal commit |
 | 8 terminal_port=None | minor | fixed as a side effect of 4 | 3ab9bbd |
-| 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default still open) | 3ab9bbd |
+| 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default gone with PollAdapter removal) | 3ab9bbd |
 | 14 architecture.md drift | minor | fixed | b86d404 |
