@@ -1,5 +1,11 @@
 # Requirements
 
+## Purpose
+
+Control a hub of n coding agent loops (Claude Code, Codex, etc.),
+each running in its own Podman container, via status reporting and
+in-browser terminal attach.
+
 ## Functional Requirements
 
 FR-01: Report an agent's status (working, blocked, idle, or done),
@@ -54,3 +60,10 @@ NFR-05: Maintainability - the status persistence mechanism must be
   no poll-based agent type or blocked-state heuristic was chosen.
   PollAdapter was removed from the codebase; it can be recovered from
   git history for a later version.
+
+## Rejected Alternative
+
+- Adopting herdr.dev directly: Podman already provides the session
+  persistence herdr's server offers for this architecture; only the
+  status-awareness gap needed a custom build, hence agenthubctl instead
+  of adopting an external runtime.
