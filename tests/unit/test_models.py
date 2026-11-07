@@ -1,10 +1,10 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from agenthubctl.domain.models import AgentStatus, StatusValue
 
 
 def test_agent_status_holds_name_status_timestamp_and_optional_message():
-    ts = datetime.now(timezone.utc)
+    ts = datetime.now(UTC)
 
     status = AgentStatus(
         name="web-dashboard",
@@ -23,7 +23,7 @@ def test_agent_status_message_defaults_to_none():
     status = AgentStatus(
         name="data-pipeline",
         status=StatusValue.WORKING,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
     assert status.message is None

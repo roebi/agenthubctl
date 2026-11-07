@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -10,13 +10,15 @@ from agenthubctl.domain.models import StatusValue
 
 def make_client(store, endpoints=None):
     terminal = TtydTerminalAdapter(endpoints=endpoints or {})
-    return app_module.create_app(status_port=store, terminal_port=terminal).test_client()
+    return app_module.create_app(
+        status_port=store, terminal_port=terminal
+    ).test_client()
 
 
 @pytest.fixture
 def client(tmp_path):
     store = FileStatusStore(base_dir=tmp_path)
-    store.report("web-dashboard", StatusValue.BLOCKED, timestamp=datetime.now(timezone.utc))
+    store.report("web-dashboard", StatusValue.BLOCKED, timestamp=datetime.now(UTC))
     return make_client(store)
 
 
@@ -74,14 +76,18 @@ def test_post_hook_notification_event_marks_agent_blocked(client):
 
 
 def test_post_hook_stop_event_marks_agent_done(client):
-    response = client.post("/agents/web-dashboard/hook", json={"hook_event_name": "Stop"})
+    response = client.post(
+        "/agents/web-dashboard/hook", json={"hook_event_name": "Stop"}
+    )
 
     assert response.status_code == 204
     assert client.get("/agents/web-dashboard").json()["status"] == "done"
 
 
 def test_post_hook_unknown_event_is_accepted_and_changes_nothing(client):
-    response = client.post("/agents/web-dashboard/hook", json={"hook_event_name": "PreToolUse"})
+    response = client.post(
+        "/agents/web-dashboard/hook", json={"hook_event_name": "PreToolUse"}
+    )
 
     assert response.status_code == 204
     assert client.get("/agents/web-dashboard").json()["status"] == "blocked"

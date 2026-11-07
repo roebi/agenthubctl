@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -8,9 +8,14 @@ from agenthubctl.domain.models import StatusValue
 
 def test_report_then_get_returns_the_reported_status(tmp_path):
     store = FileStatusStore(base_dir=tmp_path)
-    ts = datetime.now(timezone.utc)
+    ts = datetime.now(UTC)
 
-    store.report("web-dashboard", StatusValue.BLOCKED, message="needs deploy approval", timestamp=ts)
+    store.report(
+        "web-dashboard",
+        StatusValue.BLOCKED,
+        message="needs deploy approval",
+        timestamp=ts,
+    )
     result = store.get("web-dashboard")
 
     assert result is not None

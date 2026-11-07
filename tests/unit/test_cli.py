@@ -29,7 +29,9 @@ def test_cli_rejects_unexpected_subcommand_name():
 
 
 def test_cli_with_malformed_terminal_option_exits_with_usage_error(tmp_path):
-    result = runner.invoke(app, ["--status-dir", str(tmp_path), "--terminal", "no-equals-sign"])
+    result = runner.invoke(
+        app, ["--status-dir", str(tmp_path), "--terminal", "no-equals-sign"]
+    )
 
     assert result.exit_code == 2
 
@@ -62,7 +64,9 @@ def test_parse_terminal_endpoints_with_invalid_value_raises(value):
 def test_build_app_when_terminal_configured_serves_its_url(tmp_path):
     # FR-08 end to end through the real wiring the CLI uses: a configured
     # endpoint is what the dashboard's attach link opens
-    client = build_app(tmp_path, {"web-dashboard": "http://127.0.0.1:7681"}).test_client()
+    client = build_app(
+        tmp_path, {"web-dashboard": "http://127.0.0.1:7681"}
+    ).test_client()
 
     response = client.get("/agents/web-dashboard/terminal")
 

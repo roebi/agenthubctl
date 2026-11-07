@@ -24,7 +24,9 @@ WAIT_TIMEOUT_SECONDS = 10
 WAIT_STEP_SECONDS = 0.1
 AGENT_LIFETIME_SECONDS = "60"
 
-requires_tmux = pytest.mark.skipif(shutil.which("tmux") is None, reason="tmux not installed")
+requires_tmux = pytest.mark.skipif(
+    shutil.which("tmux") is None, reason="tmux not installed"
+)
 
 
 @pytest.fixture
@@ -34,7 +36,7 @@ def tmux_env():
     env = {**os.environ, "TMUX_TMPDIR": socket_dir, "TTYD_BIN": "echo"}
     env.pop("TMUX", None)
     yield env
-    subprocess.run(["tmux", "kill-server"], env=env, capture_output=True)
+    subprocess.run(["tmux", "kill-server"], env=env, capture_output=True, check=False)
     shutil.rmtree(socket_dir, ignore_errors=True)
 
 
@@ -45,6 +47,7 @@ def run_script(env, *args):
         capture_output=True,
         text=True,
         timeout=WAIT_TIMEOUT_SECONDS,
+        check=False,
     )
 
 
@@ -64,18 +67,28 @@ def wait_for_pane_text(env, text):
 
 
 def test_agent_terminal_without_command_exits_with_usage_error(tmp_path):
-    result = run_script({**os.environ, "TMUX_TMPDIR": str(tmp_path)}, SESSION, TTYD_PORT)
+    result = run_script(
+        {**os.environ, "TMUX_TMPDIR": str(tmp_path)}, SESSION, TTYD_PORT
+    )
 
     assert result.returncode == 2
 
 
 @requires_tmux
 def test_agent_terminal_serves_a_writable_attach_to_the_existing_session(tmux_env):
-    result = run_script(tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS)
+    result = run_script(
+        tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS
+    )
 
     assert result.returncode == 0
     assert result.stdout.split() == [
-        "--port", TTYD_PORT, "--writable", "tmux", "attach-session", "-t", f"={SESSION}",
+        "--port",
+        TTYD_PORT,
+        "--writable",
+        "tmux",
+        "attach-session",
+        "-t",
+        f"={SESSION}",
     ]
 
 
@@ -95,10 +108,14 @@ def test_agent_terminal_keeps_scrollback_beyond_tmux_default_history(tmux_env):
 @requires_tmux
 def test_agent_terminal_when_run_again_reuses_the_running_agent(tmux_env):
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS)
-    first_pid = tmux(tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}")
+    first_pid = tmux(
+        tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}"
+    )
 
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS)
-    second_pid = tmux(tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}")
+    second_pid = tmux(
+        tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}"
+    )
 
     assert second_pid == first_pid
     assert tmux(tmux_env, "list-sessions", "-F", "#{session_name}").split() == [SESSION]

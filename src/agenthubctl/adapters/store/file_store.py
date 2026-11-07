@@ -1,6 +1,6 @@
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from agenthubctl.domain.models import AgentStatus, StatusValue, is_valid_agent_name
@@ -27,7 +27,7 @@ class FileStatusStore:
         record = AgentStatus(
             name=agent_id,
             status=status,
-            timestamp=timestamp or datetime.now(timezone.utc),
+            timestamp=timestamp or datetime.now(UTC),
             message=message,
         )
         # NFR-04: a unique tmp file per write (never shared between concurrent

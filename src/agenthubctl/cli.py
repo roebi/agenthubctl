@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Annotated
 from urllib.parse import urlparse
 
 import typer
@@ -26,10 +27,14 @@ def parse_terminal_endpoints(values: list[str]) -> dict[str, str]:
     for value in values:
         name, separator, url = value.partition("=")
         if not separator or not is_valid_agent_name(name):
-            raise ValueError(f"expected NAME=URL with a valid agent name, got {value!r}")
+            raise ValueError(
+                f"expected NAME=URL with a valid agent name, got {value!r}"
+            )
         parsed = urlparse(url)
         if parsed.scheme not in _ALLOWED_TERMINAL_SCHEMES or not parsed.netloc:
-            raise ValueError(f"terminal URL for {name!r} must be http(s)://host..., got {url!r}")
+            raise ValueError(
+                f"terminal URL for {name!r} must be http(s)://host..., got {url!r}"
+            )
         endpoints[name] = url
     return endpoints
 
@@ -43,21 +48,25 @@ def build_app(status_dir: Path, terminal_endpoints: dict[str, str]):
 
 @app.command()
 def serve(
-    status_dir: Path = typer.Option(
-        Path("./status"), help="Directory holding one JSON status file per agent."
-    ),
-    host: str = typer.Option("127.0.0.1", help="Host to bind the HTTP server to."),
-    port: int = typer.Option(8000, help="Port to bind the HTTP server to."),
-    terminal: list[str] | None = typer.Option(
-        None,
-        "--terminal",
-        envvar="AGENTHUBCTL_TERMINALS",
-        help=(
-            "Agent terminal endpoint as NAME=URL, repeatable, e.g. "
-            "--terminal web=http://127.0.0.1:7681. "
-            "Via the env var: space-separated NAME=URL pairs."
+    status_dir: Annotated[
+        Path, typer.Option(help="Directory holding one JSON status file per agent.")
+    ] = Path("./status"),
+    host: Annotated[
+        str, typer.Option(help="Host to bind the HTTP server to.")
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port to bind the HTTP server to.")] = 8000,
+    terminal: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--terminal",
+            envvar="AGENTHUBCTL_TERMINALS",
+            help=(
+                "Agent terminal endpoint as NAME=URL, repeatable, e.g. "
+                "--terminal web=http://127.0.0.1:7681. "
+                "Via the env var: space-separated NAME=URL pairs."
+            ),
         ),
-    ),
+    ] = None,
 ) -> None:
     """Start the agenthubctl status API and dashboard."""
     try:
