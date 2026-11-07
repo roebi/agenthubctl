@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-07
+
 ### Added
 
 - Status hub for parallel coding agents: each agent reports `working`,
@@ -43,4 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No authentication: run the hub and the agents' ttyd ports on a trusted
   machine or network only.
 
-[unreleased]: https://github.com/roebi/agenthubctl/commits/main
+[unreleased]: https://github.com/roebi/agenthubctl/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/roebi/agenthubctl/releases/tag/v0.1.0
