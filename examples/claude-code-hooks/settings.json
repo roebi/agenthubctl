@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "/usr/local/bin/hook-to-hub.sh" }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "/usr/local/bin/hook-to-hub.sh" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "/usr/local/bin/hook-to-hub.sh" }] }
+    ],
+    "Notification": [
+      { "hooks": [{ "type": "command", "command": "/usr/local/bin/hook-to-hub.sh" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "/usr/local/bin/hook-to-hub.sh" }] }
+    ]
+  }
+}
