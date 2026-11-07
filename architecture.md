@@ -87,6 +87,8 @@ agenthubctl/
 - Dependencies: an injected AgentStatusPort.
 
 ### adapters.collectors.poll_adapter.PollAdapter
+- Status: descoped for v1 - unit-tested but not wired into cli.py or
+  api.app (requirements.md, Out of Scope).
 - Responsibility: fallback collector for agent types without a hook
   system; checks status on an interval (FR-05 interval-based case).
 - Public interface:
@@ -187,8 +189,9 @@ this app).
   needs confirming against a real hook invocation before
   HookAdapter's parsing logic is finalized in the implement phase.
 - Which agent type is the second (poll-based) one - Codex or
-  something else - and what its blocked-state heuristic looks like,
-  is not yet decided.
+  something else - and what its blocked-state heuristic looks like.
+  Resolved for v1 by descoping: polling is out of scope (see
+  requirements.md); PollAdapter remains an unwired extension point.
 - Dashboard refresh mechanism - FR-07 allows polling or SSE; plan to
   start with polling as the simpler option unless a reason emerges
   during implementation.
