@@ -41,10 +41,13 @@ agenthubctl/
       test_ttyd_adapter.py
     api/
       test_agents_endpoints.py
+    integration/
+      test_agent_terminal.py      # FR-09, real tmux, ttyd stubbed
   pyproject.toml
   requirements.md
   architecture.md
   Handover-State.md
+  agent-terminal.sh               # runs in each AGENT container: tmux + ttyd (FR-08, FR-09)
   .github/workflows/ci.yml
 ```
 
@@ -67,7 +70,7 @@ agenthubctl/
 ### domain.ports.AgentTerminalAccessPort
 - Responsibility: contract for resolving an agent's terminal
   endpoint (FR-08, FR-09).
-- Public interface: `resolve(agent_id) -> TerminalEndpoint`.
+- Public interface: `resolve(agent_id) -> str | None` (the ttyd URL).
 - Dependencies: domain.models only.
 
 ### adapters.store.file_store.FileStatusStore
@@ -102,11 +105,16 @@ agenthubctl/
 ### api.app
 - Responsibility: Connexion v3 app wiring the OpenAPI spec to the
   ports - GET /agents, GET /agents/{name}, POST /agents/{name}/status
-  (FR-02, FR-03, FR-06), and GET /agents/{name}/terminal returning the
-  ttyd endpoint (FR-08).
+  (FR-02, FR-03, FR-06), POST /agents/{name}/hook passing a raw Claude
+  Code hook payload through HookAdapter (FR-05 event-driven case), and
+  GET /agents/{name}/terminal returning the ttyd endpoint (FR-08).
+  Agent names are validated against one pattern
+  (domain.models.AGENT_NAME_PATTERN, mirrored in openapi.json).
 - Public interface: `create_app(status_port, terminal_port) -> App`
-  (factory, no globals).
-- Dependencies: domain.ports; api/openapi.json.
+  (factory, no globals - handlers are closures over that app's ports,
+  bound to operationIds through a Connexion `Resolver`).
+- Dependencies: domain.ports; adapters.collectors.HookAdapter;
+  api/openapi.json.
 
 ### dashboard (static HTML/JS)
 - Responsibility: polls GET /agents, renders status per agent, links
@@ -122,12 +130,16 @@ agenthubctl/
   `@app.command()` to the app's default command directly - there is
   no separate `serve` subcommand word to type; corrected from this
   document's original claim after a test caught the discrepancy).
+  Terminal endpoints are configured with repeatable
+  `--terminal NAME=URL` (or `AGENTHUBCTL_TERMINALS`), http(s) only.
 - Dependencies: api.app.create_app; concrete adapters - no logic of
   its own.
 
 ## Data Flow
 
-Collector adapters (HookAdapter, PollAdapter) call
+Agent containers POST status (POST /agents/{name}/status) or raw hook
+payloads (POST /agents/{name}/hook -> HookAdapter); collector adapters
+call
 `AgentStatusPort.report()` -> FileStatusStore writes the status as an
 atomic JSON file -> api.app's GET endpoints read it back through
 `AgentStatusPort.list()` / `get()` -> the dashboard polls those
