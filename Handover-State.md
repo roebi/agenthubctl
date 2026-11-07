@@ -15,8 +15,10 @@ results:
     status: done
     output: review-checklist.md round 4 - 0 critical, 0 major, 0 minor open; fix 3 verified with tmux 3.3a after fix 24; all 9 minor findings fixed; pytest 59 passed / 0 skipped, coverage 96%, ruff clean
   - phase: release
-    status: pending
-    output: not started - decided: name stays agenthubctl, user creates the GitHub repo, identity Robert Halter <roebi@users.noreply.github.com> (all commits carry it), remote origin https://github.com/roebi/agenthubctl (created by the user, empty, first push by the user); open: PyPI vs GitHub Release only
+    status: done
+    output: v0.1.0 released 2026-11-07 - PyPI https://pypi.org/project/agenthubctl/0.1.0/ (trusted publishing), GitHub Release https://github.com/roebi/agenthubctl/releases/tag/v0.1.0 (wheel + sdist attached), container ghcr.io/roebi/agenthubctl:0.1.0 and :latest; release run 42397428053 started by the tag the user created with the web-UI release; PyPI install verified with uvx
+exit_condition_met: true
+next_version: control agents through the OpenAPI interface (requirements.md 'Planned for the Next Version') - starts with gather-requirements-en; open minor follow-up: bump trivy-action (review-checklist fix 36)
 verified_clean:
   - GitHub Actions CI fully green on run 42395806504 (558bfc7): test, shellcheck, workflow-lint, python-sast, container-scan (Trivy, ignore-unfixed), dast (OWASP ZAP baseline) - 2026-11-07
   - pytest: 61 passed, 0 skipped, coverage 96%, 80% gate enforced via fail_under (Python 3.14.10, tmux 3.3a, 2026-11-07)
@@ -31,6 +33,5 @@ known_gaps:
   - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter and its tests removed, recoverable from git history
   - HookAdapter maps SessionStart/UserPromptSubmit/PreToolUse/Notification/Stop from the documented hook input - not yet confirmed against a live Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
-  - pushed to https://github.com/roebi/agenthubctl (repo recreated 2026-11-07 after removing AI trailers from history); no v0.1.0 tag, release.yml has never actually run
-  - release-sw-project-en not started
+  - pushed to https://github.com/roebi/agenthubctl (repo recreated 2026-11-07 after removing AI trailers from history); v0.1.0 released through release.yml
   - sw-dev-agent-framework consolidation explicitly deferred by user to a later session
