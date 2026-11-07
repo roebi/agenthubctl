@@ -1,0 +1,21 @@
+# Demo AGENT container (not the hub): one interactive bash session in tmux,
+# served by ttyd through agent-terminal.sh (FR-08, FR-09), plus the
+# agent-status helper that reports to the hub (FR-01). Build context is the
+# repo root: podman build -f examples/demo-agent/Containerfile .
+FROM debian:trixie-slim
+
+# tmux and ttyd come from Debian's signed package archive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tmux ttyd curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --chmod=755 agent-terminal.sh /usr/local/bin/agent-terminal.sh
+COPY --chmod=755 examples/demo-agent/agent-status /usr/local/bin/agent-status
+COPY --chmod=755 examples/demo-agent/demo-agent-entrypoint.sh /usr/local/bin/demo-agent-entrypoint.sh
+
+RUN useradd --create-home --uid 10001 agent
+USER agent
+WORKDIR /home/agent
+
+EXPOSE 7681
+ENTRYPOINT ["/usr/local/bin/demo-agent-entrypoint.sh"]

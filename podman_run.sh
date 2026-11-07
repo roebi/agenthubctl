@@ -8,6 +8,11 @@
 #   AGENTHUBCTL_STATUS_VOLUME  named volume for status files
 #   AGENTHUBCTL_OPEN_BROWSER   1 (default) opens the dashboard in the default
 #                              browser when a desktop session is present; 0 never
+#   AGENTHUBCTL_TERMINALS      agent terminals as space-separated NAME=URL pairs,
+#                              passed to the hub (see agenthubctl --help)
+#
+# The hub joins the podman network "agenthubctl", so agent containers on that
+# network reach it as http://agenthubctl:8000 (examples/demo-agent/run.sh).
 set -euo pipefail
 
 IMAGE_NAME="agenthubctl"
@@ -15,6 +20,7 @@ IMAGE_TAG="${1:-latest}"
 CONTAINER_NAME="agenthubctl"
 HOST_PORT="${AGENTHUBCTL_HOST_PORT:-8000}"
 STATUS_VOLUME="${AGENTHUBCTL_STATUS_VOLUME:-agenthubctl-status}"
+NETWORK="agenthubctl"
 OPEN_BROWSER="${AGENTHUBCTL_OPEN_BROWSER:-1}"
 READY_TIMEOUT_SECONDS=30
 
@@ -26,11 +32,17 @@ if podman container exists "${CONTAINER_NAME}"; then
     echo "Removed previous ${CONTAINER_NAME} container"
 fi
 
+if ! podman network exists "${NETWORK}"; then
+    podman network create "${NETWORK}" >/dev/null
+fi
+
 container_id="$(podman run \
     --detach \
     --name "${CONTAINER_NAME}" \
+    --network "${NETWORK}" \
     --publish "${HOST_PORT}:8000" \
     --volume "${STATUS_VOLUME}:/data/status" \
+    --env AGENTHUBCTL_TERMINALS="${AGENTHUBCTL_TERMINALS:-}" \
     "${IMAGE_NAME}:${IMAGE_TAG}")"
 echo "Started ${CONTAINER_NAME} (${container_id:0:12}), publishing port ${HOST_PORT}"
 
