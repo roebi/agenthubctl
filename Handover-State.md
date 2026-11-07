@@ -18,6 +18,7 @@ results:
     status: pending
     output: not started - decided: name stays agenthubctl, user creates the GitHub repo, identity Robert Halter <roebi@users.noreply.github.com> (all commits carry it), remote origin https://github.com/roebi/agenthubctl (created by the user, empty, first push by the user); open: PyPI vs GitHub Release only
 verified_clean:
+  - GitHub Actions CI fully green on run 42395806504 (558bfc7): test, shellcheck, workflow-lint, python-sast, container-scan (Trivy, ignore-unfixed), dast (OWASP ZAP baseline) - 2026-11-07
   - pytest: 61 passed, 0 skipped, coverage 96%, 80% gate enforced via fail_under (Python 3.14.10, tmux 3.3a, 2026-11-07)
   - ruff check src tests: clean (ruff 0.16.5); ruff format: clean
   - shellcheck: clean on all 8 scripts (ShellCheck 0.11.0 via `uvx --from shellcheck-py shellcheck`, and CI)
