@@ -1,118 +1,90 @@
-# Review Checklist
+# Code Review Checklist
 
 Skill: code-review-en
-Reviewed commit: 62fd50f (main)
+Round: 2 (re-review after the round-1 fix loop)
+Reviewed commit: 57ecb4c (main), plus fix 23 below
 Date: 2026-11-07
-Scope: STATIC PARTS ONLY. The review container has no Python, uv, pytest
-or ruff, so steps 3 (coverage) and 5 (ruff) were not run, and no test was
-executed in this session. "Test passes" below is "not run" everywhere; the
-22/22 figure in Handover-State.md is from the implement phase and was not
-re-verified here.
+Environment: Python 3.14.10, uv, ruff 0.16.5, bandit (via uvx). No tmux,
+no shellcheck, no podman in this container. Round 1 (static only, commit
+62fd50f) is in git history; its fixes are summarized under Fix History.
 
 ## Requirements Coverage
 
 | FR | Covered by test | Test passes | Notes |
 |---|---|---|---|
-| FR-01 | yes | not run | test_file_store (report/get), test_hook_adapter, test_poll_adapter, test_post_agent_status_records_the_status |
-| FR-02 | yes | not run | test_get_agents_returns_all_statuses, test_list_returns_all_reported_statuses |
-| FR-03 | yes | not run | test_get_agent_by_name_returns_that_agent, test_get_agent_returns_404_for_unknown_agent |
-| FR-04 | partial | not run | atomic write tested (no leftover tmp); survival across restart (new store instance on same dir) not tested |
-| FR-05 | partial | not run | both collectors unit-tested in isolation; neither is wired into the running app, no per-agent-type selection exists (see fix 7) |
-| FR-06 | partial | not run | endpoints are exercised through the spec-routed app; no test that the OpenAPI document itself is served |
-| FR-07 | partial | not run | test_dashboard_route_serves_html checks HTML is served; auto-refresh not tested |
-| FR-08 | partial | not run | GET /agents/{name}/terminal tested with an injected mapping; the shipped CLI wires an empty mapping, so attach always 404s (see fix 2) |
-| FR-09 | no | - | no test of any kind; needs a container-level test (tmux + ttyd) |
+| FR-01 | yes | yes | test_report_then_get_returns_the_reported_status, test_post_agent_status_records_the_status, test_hook_adapter_* |
+| FR-02 | yes | yes | test_get_agents_returns_all_statuses, test_list_returns_all_reported_statuses |
+| FR-03 | yes | yes | test_get_agent_by_name_returns_that_agent, test_get_agent_returns_404_for_unknown_agent, test_get_agent_with_invalid_name_returns_400 |
+| FR-04 | partial | yes | atomic write + concurrent tmp file tested; survival across restart verified by a manual probe (second app on the same dir reads the status) but not by a test (fix 9) |
+| FR-05 | yes | yes | test_post_hook_notification/stop/unknown_event_*; direct POST route tested; polling descoped for v1 in requirements.md |
+| FR-06 | partial | yes | all endpoints exercised through the spec-routed app; GET /openapi.json returns 200 in a manual probe, no test (fix 9) |
+| FR-07 | partial | yes | dashboard served, XSS-safe rendering asserted; auto-refresh not asserted (fix 9) |
+| FR-08 | yes | yes | test_build_app_when_terminal_configured_serves_its_url (real CLI wiring), terminal 200/404 API tests, --terminal parsing incl. javascript: rejection; AGENTHUBCTL_TERMINALS env var splitting verified by manual probe |
+| FR-09 | yes | NOT RUN | 3 of 4 tests in tests/integration/test_agent_terminal.py skip ("tmux not installed"); only the usage-error test ran (fix 3) |
 
 ## Architecture Compliance
 
-- [x] Module structure matches architecture.md (extra tests/unit/test_cli.py and test_models.py are justified; doc drift noted in fix 14)
+- [x] Module structure matches architecture.md (extra test_cli.py, test_models.py justified)
 - [x] No module has more than one responsibility
-- [ ] Side effects are isolated per design - api/app.py keeps module-level globals, contradicting "factory, no globals" (fix 4)
+- [x] Side effects are isolated per design - create_app binds ports in closures, verified by test_two_apps_when_created_with_different_stores_stay_independent
+- [x] Container image matches the design - FIXED in this round (fix 23): the hub image installed tmux and ttyd that architecture.md places in the agent containers
 
 ## Test Quality
 
-- [ ] Every FR has at least one test - FR-09 has none
-- [ ] Tests use descriptive names: test_<what>_<when>_<expected> - most omit the <when> part
-- [x] No test depends on execution order - holds today only because every test calls create_app again; latent risk via the globals in fix 4
-- [ ] Coverage >= 80% - NOT RUN (no uv/pytest in the review container)
+- [x] Every FR has at least one test (FR-09 tests exist but are not yet executed, see fix 3)
+- [ ] Tests use descriptive names: test_<what>_<when>_<expected> - many still omit <when> (fix 13)
+- [x] No test depends on execution order
+- [x] Coverage >= 80% - 91% (`uv run pytest --cov=src --cov-report=term-missing`: 40 passed, 3 skipped)
 
 ## Security
 
-- [x] No secrets, passwords, or tokens in code or tests (grep for password|secret|token|key = : no hits)
-- [ ] All external inputs are validated - agent name path parameter has no pattern; status message is rendered unescaped (fixes 1, 6)
-- [ ] No arbitrary code execution from user input - stored XSS in the dashboard (fix 1); no subprocess, shell=True, eval or exec in src/
+- [x] No secrets, passwords, or tokens in code or tests (grep: no hits)
+- [x] All external inputs are validated - agent name pattern, status enum, required hook_event_name all enforced by the OpenAPI spec (probed: 400 for each); store re-validates names; --terminal accepts http(s) only
+- [x] No arbitrary code execution from user input - no shell=True/eval/exec/os.system in src; dashboard renders with textContent only; bandit: no issues
+- [x] No unverified binaries in the shipped image - FIXED (fix 23)
 
 ## Code Quality
 
-- [x] No em-dashes or long-dashes in comments or strings (U+2013/2014 grep: OK; U+2012/2015/2212 also checked: none)
-- [ ] No magic numbers - use named constants (fix 12)
-- [ ] No dead code - HookAdapter and PollAdapter are unreachable from the shipped app (fix 7)
+- [x] No em-dashes or long-dashes in comments or strings (U+2012..U+2015, U+2212: none in src, tests, scripts, docs)
+- [x] No magic numbers - named constants in dashboard and tests
+- [x] No dead code reachable-wise, with one caveat: the `except ValueError -> 400` branches in api/app.py are unreachable through HTTP because Connexion validates the name first (fix 21, kept as defense in depth)
 - [x] Functions are pure where possible
-- [ ] ruff check src/ tests/ - NOT RUN (no uv/ruff in the review container)
+- [x] `uv run ruff check src/ tests/`: All checks passed (after fix 17); `ruff format --check`: clean
 
-## Required Fixes
+## Required Fixes (open)
 
-1. Stored XSS: dashboard builds rows with innerHTML from agent.name and agent.message; anyone who can POST /agents/{name}/status (unauthenticated) injects script into every viewer's dashboard. Build cells with textContent and encodeURIComponent the name in the terminal fetch URL - src/agenthubctl/dashboard/static/index.html:35-41,48 - severity: critical
-2. FR-08 not usable in the shipped product: cli.py wires TtydTerminalAdapter(endpoints={}) with no option to configure endpoints, so every attach click returns 404 - src/agenthubctl/cli.py:25 - severity: critical
-3. Missing test for FR-09 (scrollback / rendering on attach); no test at any level - tests/ - severity: critical
-4. Architecture violation: create_app stores the ports in module globals (_status_port, _terminal_port); a second create_app call silently rewires the first app. Bind ports per app instead (e.g. Connexion resolver or closures) - src/agenthubctl/api/app.py:12-13,40-42 - severity: major
-5. NFR-04 not guaranteed under concurrency: the tmp file name is fixed (<id>.json.tmp), so two writers for the same agent (hook + POST, or two POSTs) share it and one can os.replace the other's half-written file into place. Use a unique tmp file in the same dir (tempfile.NamedTemporaryFile(dir=..., delete=False)) and fsync before os.replace - src/agenthubctl/adapters/store/file_store.py:31-33 - severity: major
-6. Agent name is never validated: the store builds base_dir / f"{agent_id}.json" from it, so an id like "../x" writes outside base_dir when it reaches the store from any caller; the OpenAPI path parameter has no pattern either (HTTP exploitability not verified without running). Add a name pattern (e.g. ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$) in openapi.json and enforce it in FileStatusStore - src/agenthubctl/adapters/store/file_store.py:15, src/agenthubctl/api/openapi.json (all {name} parameters) - severity: major
-7. FR-05 only half-implemented / dead code: HookAdapter and PollAdapter are not reachable from cli.py or api/app.py, and there is no per-agent-type selection. Wire them (e.g. hook POST route or CLI hook subcommand, poll loop started by serve) or record the descoping in requirements.md - src/agenthubctl/cli.py, src/agenthubctl/adapters/collectors/ - severity: major
-8. create_app accepts terminal_port=None, then get_agent_terminal calls None.resolve -> 500; the API test fixture relies on passing None - src/agenthubctl/api/app.py:33,39, tests/api/test_agents_endpoints.py:14 - severity: minor
-9. Add tests: FR-04 restart (second FileStatusStore on the same dir reads the status), FR-06 OpenAPI document served, FR-07 dashboard contains the refresh loop - tests/ - severity: minor
-10. HookAdapter never reports working or idle and silently drops unknown events, so an agent stays "blocked" until Stop (known open question: real hook payload shape) - src/agenthubctl/adapters/collectors/hook_adapter.py:10-15 - severity: minor
-11. One corrupt or foreign *.json file in the status dir makes list() raise, so GET /agents and the whole dashboard return 500 - src/agenthubctl/adapters/store/file_store.py:41-45 - severity: minor
-12. Magic numbers: poll interval default 5, dashboard refresh 3000 ms - src/agenthubctl/adapters/collectors/poll_adapter.py:14, src/agenthubctl/dashboard/static/index.html:58 - severity: minor
-13. Test hygiene: names lack <when>; several tests assert more than one thing; FakeStatusPort duplicated in two files (move to tests/conftest.py); API terminal tests repeat setup instead of a fixture - tests/unit/test_hook_adapter.py:5, tests/unit/test_poll_adapter.py:5, tests/api/test_agents_endpoints.py:48-73 - severity: minor
-14. Doc drift in architecture.md: resolve returns str | None not TerminalEndpoint; report has a timestamp parameter; HookAdapter takes agent_id - architecture.md (Components) - severity: minor
-15. starlette is imported directly but only present as a transitive dependency of connexion; declare it - src/agenthubctl/api/app.py:4, pyproject.toml - severity: minor
-16. requirements.md and REQUIREMENTS.md both exist with different ID schemes (FR-xx vs R-xxx, which commit messages still cite) and collide on case-insensitive filesystems; keep one - requirements.md, REQUIREMENTS.md - severity: minor
+3. FR-09 integration tests never executed - tmux missing in the review container, 3 tests skip. Fixed in code in round 1; needs one green run with tmux - tests/integration/test_agent_terminal.py - severity: critical (unverified)
+9. Add tests: FR-04 restart (second FileStatusStore on the same dir), FR-06 GET /openapi.json served, FR-07 dashboard contains the refresh loop - all three behaviors were confirmed by manual probes - tests/ - severity: minor
+10. HookAdapter never reports working or idle and drops the Notification message; real hook payload shape still unconfirmed (architecture.md open question) - src/agenthubctl/adapters/collectors/hook_adapter.py:10-15 - severity: minor
+11. list() trusts every *.json in the status dir: one corrupt file makes GET /agents return 500 (probed), and a foreign file whose content names another agent produces a duplicate entry (probed) - src/agenthubctl/adapters/store/file_store.py:57-61 - severity: minor
+13. Test hygiene: many names lack <when>; several tests assert more than one thing - tests/ - severity: minor
+15. starlette is imported directly but only present as a transitive dependency of connexion; declare it - src/agenthubctl/api/app.py:6, pyproject.toml - severity: minor
+19. Image build ignores uv.lock (`pip install .` resolves fresh, unpinned versions) and runs as root - Dockerfile - severity: minor
+20. CI runs `uv run pytest` without coverage or `--cov-fail-under=80`, so the 80% gate is only enforced by this review - .github/workflows/ci.yml:27 - severity: minor
+21. `except ValueError` branches in api/app.py (lines 38-39, 49-50, 56-57) are unreachable over HTTP and untested; in report_agent_status a ValueError from StatusValue(...) would be mislabeled "Invalid agent name" if spec validation were ever bypassed - src/agenthubctl/api/app.py - severity: minor
+22. No shipped example of how an agent container sends Claude Code hooks to the hub (e.g. a hook command posting stdin to /agents/NAME/hook) - docs - severity: minor
 
 ## Result
 
 phase: review
 status: blocked
-output: review-checklist.md - 3 critical, 4 major, 9 minor findings (static parts only; coverage, ruff and test runs still open)
+output: review-checklist.md round 2 - 1 critical (fix 3, unverified only: needs a tmux run), 0 major open (fix 23 found and fixed this round), 8 minor findings
 
-## Fix Log (2026-11-07, fix loop step 1 - NOT yet re-verified)
-
-Tests were written alongside each fix, but nothing could be run in this
-container (no Python, uv, pytest, ruff, tmux). Loop steps 2 (re-run tests)
-and 3 (re-run this review) are still open; status stays blocked until they
-pass.
+## Fix History
 
 | Fix | Severity | State | Commit |
 |---|---|---|---|
-| 1 stored XSS | critical | fixed, unverified | 3ab9bbd |
-| 2 FR-08 CLI wiring (--terminal) | critical | fixed, unverified | 1ea42d7 |
-| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, unverified | dd267b5 |
-| 4 module globals in api/app.py | major | fixed, unverified | 3ab9bbd |
-| 5 NFR-04 shared tmp file | major | fixed, unverified | 19e918e |
-| 6 agent name validation | major | fixed, unverified | 19e918e, 3ab9bbd |
-| 7 FR-05 collectors wired | major | resolved: hook route wired (3ab9bbd); interval-based polling descoped for v1 in requirements.md, PollAdapter removed | 3ab9bbd, e0794c5, removal commit |
-| 8 terminal_port=None | minor | fixed as a side effect of 4 | 3ab9bbd |
-| 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default gone with PollAdapter removal) | 3ab9bbd |
+| 1 stored XSS in dashboard | critical | fixed, verified (tests green) | 3ab9bbd |
+| 2 FR-08 CLI wiring (--terminal) | critical | fixed, verified | 1ea42d7 |
+| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, UNVERIFIED (tmux missing) | dd267b5 |
+| 4 module globals in api/app.py | major | fixed, verified | 3ab9bbd |
+| 5 NFR-04 shared tmp file | major | fixed, verified | 19e918e |
+| 6 agent name validation | major | fixed, verified (incl. HTTP 400 probes) | 19e918e, 3ab9bbd |
+| 7 FR-05 collectors wired | major | resolved: hook route wired, polling descoped for v1 | 3ab9bbd, e0794c5, bd3d095 |
+| 8 terminal_port=None | minor | fixed (side effect of 4) | 3ab9bbd |
+| 12 magic numbers | minor | fixed | 3ab9bbd |
 | 14 architecture.md drift | minor | fixed | b86d404 |
-| 16 duplicate requirements files | minor | fixed - REQUIREMENTS.md deleted, requirements.md is the single source | REQUIREMENTS.md removal commit |
-
-## Fix Log (2026-11-07, fix loop step 2 - first real run)
-
-The container now has Python 3.14.10 and uv (no tmux, no gh).
-
-- `uv run pytest --cov=src --cov-report=term-missing`: 40 passed, 3 skipped,
-  coverage 91% (>= 80% met). The 3 skips are the tmux integration tests for
-  fix 3 / FR-09 ("tmux not installed"), so fix 3 is still unverified.
-- `uv run ruff check src/ tests/` (ruff 0.16.5, default rules, no project
-  config) first failed with 9 errors, which would have turned CI red. Fixed
-  below; now "All checks passed!".
-
-| Fix | Severity | State |
-|---|---|---|
-| 17 ruff check fails: UP017 (timezone.utc -> UTC, 5x), B008 (typer.Option defaults -> Annotated, 2x in cli.py), PLW1510 (explicit check=False, 2x in integration test) | major (CI red) | fixed, verified (ruff clean, tests green, `agenthubctl --help` renders all options) |
-| 18 no .gitignore: __pycache__, .coverage, .ruff_cache show as untracked | minor | fixed |
-| - ruff format applied to 5 files (not enforced in CI) | style | done |
-
-Verified now: fixes 1, 2, 4, 5, 6, 7, 8, 12 (their tests run green).
-Still open: fix 3 needs tmux (the integration tests skip without it), and
-fix-loop step 3 (re-run code-review-en against the fixed code).
+| 16 duplicate requirements files | minor | fixed | 6d3ffe9 |
+| 17 ruff check failed (9 errors on ruff 0.16 defaults) | major | fixed, verified | 5bbb65a |
+| 18 no .gitignore | minor | fixed | 5bbb65a |
+| 23 hub image installed tmux, curl and an unchecksummed ttyd binary it never uses (agent-terminal.sh is not in the image; architecture.md puts tmux+ttyd in agent containers) | major | fixed: removed from Dockerfile; image build not verified (no podman here) | this round |
