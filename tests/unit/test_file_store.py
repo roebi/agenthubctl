@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 from agenthubctl.adapters.store.file_store import FileStatusStore
 from agenthubctl.domain.models import StatusValue
 
@@ -41,3 +43,32 @@ def test_report_leaves_no_leftover_tmp_file(tmp_path):
 
     tmp_files = list(tmp_path.glob("*.tmp"))
     assert tmp_files == []
+
+
+def test_report_when_another_writer_has_a_tmp_file_open_leaves_it_untouched(tmp_path):
+    # NFR-04: a concurrent writer's in-progress tmp file for the same agent
+    # must never be truncated or renamed into place by this write
+    store = FileStatusStore(base_dir=tmp_path)
+    other_writers_tmp = tmp_path / "web-dashboard.json.tmp"
+    other_writers_tmp.write_text("partial")
+
+    store.report("web-dashboard", StatusValue.WORKING)
+
+    assert other_writers_tmp.read_text() == "partial"
+
+
+def test_report_with_path_traversal_name_raises_and_writes_nothing(tmp_path):
+    base = tmp_path / "status"
+    store = FileStatusStore(base_dir=base)
+
+    with pytest.raises(ValueError):
+        store.report("../escape", StatusValue.WORKING)
+
+    assert list(tmp_path.rglob("*escape*")) == []
+
+
+def test_get_with_path_traversal_name_raises(tmp_path):
+    store = FileStatusStore(base_dir=tmp_path / "status")
+
+    with pytest.raises(ValueError):
+        store.get("../escape")
