@@ -7,7 +7,7 @@
   "paths": {
     "/agents": {
       "get": {
-        "operationId": "agenthubctl.api.app.list_agents",
+        "operationId": "list_agents",
         "responses": {
           "200": {
             "description": "All agent statuses",
@@ -25,15 +25,8 @@
     },
     "/agents/{name}": {
       "get": {
-        "operationId": "agenthubctl.api.app.get_agent",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
+        "operationId": "get_agent",
+        "parameters": [{ "$ref": "#/components/parameters/AgentName" }],
         "responses": {
           "200": {
             "description": "Single agent status",
@@ -43,21 +36,15 @@
               }
             }
           },
+          "400": { "description": "Invalid agent name" },
           "404": { "description": "Agent not found" }
         }
       }
     },
     "/agents/{name}/status": {
       "post": {
-        "operationId": "agenthubctl.api.app.report_agent_status",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
+        "operationId": "report_agent_status",
+        "parameters": [{ "$ref": "#/components/parameters/AgentName" }],
         "requestBody": {
           "required": true,
           "content": {
@@ -67,21 +54,34 @@
           }
         },
         "responses": {
-          "204": { "description": "Status recorded" }
+          "204": { "description": "Status recorded" },
+          "400": { "description": "Invalid agent name or body" }
+        }
+      }
+    },
+    "/agents/{name}/hook": {
+      "post": {
+        "operationId": "report_agent_hook",
+        "description": "Event-driven status collection (FR-05): accepts a raw Claude Code hook payload (Notification, Stop) as sent on the hook's stdin and translates it into a status. Unknown events are accepted and ignored.",
+        "parameters": [{ "$ref": "#/components/parameters/AgentName" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HookPayload" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Hook event processed" },
+          "400": { "description": "Invalid agent name or body" }
         }
       }
     },
     "/agents/{name}/terminal": {
       "get": {
-        "operationId": "agenthubctl.api.app.get_agent_terminal",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
+        "operationId": "get_agent_terminal",
+        "parameters": [{ "$ref": "#/components/parameters/AgentName" }],
         "responses": {
           "200": {
             "description": "Terminal endpoint for the agent",
@@ -91,18 +91,31 @@
               }
             }
           },
+          "400": { "description": "Invalid agent name" },
           "404": { "description": "Agent not found" }
         }
       }
     }
   },
   "components": {
+    "parameters": {
+      "AgentName": {
+        "name": "name",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/AgentName" }
+      }
+    },
     "schemas": {
+      "AgentName": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+      },
       "AgentStatus": {
         "type": "object",
         "required": ["name", "status", "timestamp"],
         "properties": {
-          "name": { "type": "string" },
+          "name": { "$ref": "#/components/schemas/AgentName" },
           "status": {
             "type": "string",
             "enum": ["working", "blocked", "idle", "done"]
@@ -121,6 +134,14 @@
           },
           "message": { "type": "string", "nullable": true }
         }
+      },
+      "HookPayload": {
+        "type": "object",
+        "required": ["hook_event_name"],
+        "properties": {
+          "hook_event_name": { "type": "string" }
+        },
+        "additionalProperties": true
       },
       "TerminalEndpoint": {
         "type": "object",

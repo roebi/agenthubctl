@@ -25,37 +25,69 @@
 </table>
 
 <script>
+// Agent names and messages are untrusted (unauthenticated POSTs), so every
+// value is written with textContent, never parsed as HTML.
+const REFRESH_INTERVAL_MS = 3000;
+const KNOWN_STATUSES = new Set(["working", "blocked", "idle", "done"]);
+
+function textCell(text) {
+  const td = document.createElement("td");
+  td.textContent = text;
+  return td;
+}
+
+async function openTerminal(name) {
+  const res = await fetch(`/agents/${encodeURIComponent(name)}/terminal`);
+  if (!res.ok) {
+    return;
+  }
+  const { url } = await res.json();
+  window.open(url, "_blank", "noopener");
+}
+
+function renderRow(agent) {
+  const tr = document.createElement("tr");
+  tr.appendChild(textCell(agent.name));
+
+  const statusTd = document.createElement("td");
+  const badge = document.createElement("span");
+  badge.className = "status";
+  if (KNOWN_STATUSES.has(agent.status)) {
+    badge.classList.add(agent.status);
+  }
+  badge.textContent = agent.status;
+  statusTd.appendChild(badge);
+  tr.appendChild(statusTd);
+
+  tr.appendChild(textCell(agent.message ?? ""));
+  tr.appendChild(textCell(new Date(agent.timestamp).toLocaleTimeString()));
+
+  const attachTd = document.createElement("td");
+  const link = document.createElement("a");
+  link.className = "attach";
+  link.href = "#";
+  link.textContent = "attach";
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    openTerminal(agent.name);
+  });
+  attachTd.appendChild(link);
+  tr.appendChild(attachTd);
+  return tr;
+}
+
 async function refresh() {
   const res = await fetch("/agents");
+  if (!res.ok) {
+    return;
+  }
   const agents = await res.json();
-  const tbody = document.querySelector("#agents tbody");
-  tbody.innerHTML = "";
-  for (const agent of agents.sort((a, b) => a.name.localeCompare(b.name))) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${agent.name}</td>
-      <td><span class="status ${agent.status}">${agent.status}</span></td>
-      <td>${agent.message ?? ""}</td>
-      <td>${new Date(agent.timestamp).toLocaleTimeString()}</td>
-      <td><a class="attach" href="#" data-name="${agent.name}">attach</a></td>
-    `;
-    tbody.appendChild(tr);
-  }
-  for (const link of document.querySelectorAll("a.attach")) {
-    link.addEventListener("click", async (event) => {
-      event.preventDefault();
-      const name = event.target.dataset.name;
-      const res = await fetch(`/agents/${name}/terminal`);
-      if (res.ok) {
-        const { url } = await res.json();
-        window.open(url, "_blank");
-      }
-    });
-  }
+  agents.sort((a, b) => a.name.localeCompare(b.name));
+  document.querySelector("#agents tbody").replaceChildren(...agents.map(renderRow));
 }
 
 refresh();
-setInterval(refresh, 3000);
+setInterval(refresh, REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>
