@@ -1,6 +1,6 @@
 # Demo agent
 
-One fake agent to see the hub working end to end: a Fedora 43 container
+One fake agent to see the hub working end to end: a Fedora 45 container
 with a bash session in tmux, served by ttyd (attach from the dashboard), plus an `agent-status` command
 that reports to the hub.
 

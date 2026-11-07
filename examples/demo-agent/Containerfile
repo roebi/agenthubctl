@@ -2,7 +2,7 @@
 # served by ttyd through agent-terminal.sh (FR-08, FR-09), plus the
 # agent-status helper that reports to the hub (FR-01). Build context is the
 # repo root: podman build -f examples/demo-agent/Containerfile .
-FROM registry.fedoraproject.org/fedora:43
+FROM registry.fedoraproject.org/fedora:45
 
 # tmux and ttyd come from Fedora's signed package repositories (Debian ships
 # ttyd only in testing/unstable, not in a stable release); curl is in the base
