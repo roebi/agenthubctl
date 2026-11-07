@@ -19,6 +19,8 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.14"
+      - name: Install tmux (FR-09 integration tests)
+        run: sudo apt-get update && sudo apt-get install -y tmux
       - name: Install dependencies
         run: uv sync --all-groups
       - name: Run tests
@@ -49,7 +51,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
-          shellcheck entrypoint.sh podman_build.sh podman_run.sh
+          shellcheck entrypoint.sh podman_build.sh podman_run.sh agent-terminal.sh
 
   python-sast:
     runs-on: ubuntu-latest
