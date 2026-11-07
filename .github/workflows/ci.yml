@@ -88,6 +88,9 @@ jobs:
           format: table
           exit-code: "1"
           severity: "CRITICAL,HIGH"
+          # fail only on findings that have a fix; unfixed Debian findings
+          # (no patched package yet) cannot be addressed by a rebuild
+          ignore-unfixed: true
 
   dast:
     runs-on: ubuntu-latest
