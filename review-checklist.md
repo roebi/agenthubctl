@@ -1,8 +1,8 @@
 # Code Review Checklist
 
 Skill: code-review-en
-Round: 3 (fix 3 verified - first run with tmux)
-Reviewed commit: f3f5837 (main), plus fix 24 below
+Round: 4 (minor fixes 9-22 applied; round 3 verified fix 3 with tmux)
+Reviewed commit: 7cc1414 (main), plus the round-4 fixes below
 Date: 2026-11-07
 Environment: Python 3.14.10, uv, ruff 0.16.5, tmux 3.3a. No podman in this
 container. Round 2 (commit 57ecb4c + fix 23) found the same state minus the
@@ -16,10 +16,10 @@ tmux run. Round 1 (static only, commit
 | FR-01 | yes | yes | test_report_then_get_returns_the_reported_status, test_post_agent_status_records_the_status, test_hook_adapter_* |
 | FR-02 | yes | yes | test_get_agents_returns_all_statuses, test_list_returns_all_reported_statuses |
 | FR-03 | yes | yes | test_get_agent_by_name_returns_that_agent, test_get_agent_returns_404_for_unknown_agent, test_get_agent_with_invalid_name_returns_400 |
-| FR-04 | partial | yes | atomic write + concurrent tmp file tested; survival across restart verified by a manual probe (second app on the same dir reads the status) but not by a test (fix 9) |
-| FR-05 | yes | yes | test_post_hook_notification/stop/unknown_event_*; direct POST route tested; polling descoped for v1 in requirements.md |
-| FR-06 | partial | yes | all endpoints exercised through the spec-routed app; GET /openapi.json returns 200 in a manual probe, no test (fix 9) |
-| FR-07 | partial | yes | dashboard served, XSS-safe rendering asserted; auto-refresh not asserted (fix 9) |
+| FR-04 | yes | yes | atomic write, concurrent tmp file, test_get_after_restart_returns_the_status_reported_before (fix 9) |
+| FR-05 | yes | yes | test_hook_adapter_* (SessionStart, UserPromptSubmit, PreToolUse, Notification incl. message, Stop, unknown), test_post_hook_*; example verified end to end against a running hub (fix 22); polling descoped for v1 |
+| FR-06 | yes | yes | all endpoints exercised through the spec-routed app; test_openapi_spec_when_requested_is_served (fix 9) |
+| FR-07 | yes | yes | dashboard served, XSS-safe rendering, test_dashboard_when_loaded_refreshes_on_an_interval (fix 9) |
 | FR-08 | yes | yes | test_build_app_when_terminal_configured_serves_its_url (real CLI wiring), terminal 200/404 API tests, --terminal parsing incl. javascript: rejection; AGENTHUBCTL_TERMINALS env var splitting verified by manual probe |
 | FR-09 | yes | yes | all 4 tests in tests/integration/test_agent_terminal.py run against real tmux 3.3a (after fix 24); scrollback test verified to fail with AGENT_TERMINAL_HISTORY_LIMIT=2000 |
 
@@ -33,9 +33,9 @@ tmux run. Round 1 (static only, commit
 ## Test Quality
 
 - [x] Every FR has at least one test, and all of them run and pass
-- [ ] Tests use descriptive names: test_<what>_<when>_<expected> - many still omit <when> (fix 13)
+- [x] Tests use descriptive names: test_<what>_<when>_<expected> (fix 13); tests with several asserts check one behavior each (a response and its stored effect, or the fields of one record)
 - [x] No test depends on execution order
-- [x] Coverage >= 80% - 91% (`uv run pytest --cov=src --cov-report=term-missing`: 43 passed, 0 skipped)
+- [x] Coverage >= 80% - 96% (`uv run pytest --cov=src --cov-report=term-missing`: 59 passed, 0 skipped); now enforced by `fail_under = 80` in pyproject.toml, CI runs with --cov (fix 20)
 
 ## Security
 
@@ -48,27 +48,19 @@ tmux run. Round 1 (static only, commit
 
 - [x] No em-dashes or long-dashes in comments or strings (U+2012..U+2015, U+2212: none in src, tests, scripts, docs)
 - [x] No magic numbers - named constants in dashboard and tests
-- [x] No dead code reachable-wise, with one caveat: the `except ValueError -> 400` branches in api/app.py are unreachable through HTTP because Connexion validates the name first (fix 21, kept as defense in depth)
+- [x] No dead code - the unreachable `except ValueError` branches were replaced by explicit, tested checks (fix 21)
 - [x] Functions are pure where possible
 - [x] `uv run ruff check src/ tests/`: All checks passed (after fix 17); `ruff format --check`: clean
 
 ## Required Fixes (open)
 
-9. Add tests: FR-04 restart (second FileStatusStore on the same dir), FR-06 GET /openapi.json served, FR-07 dashboard contains the refresh loop - all three behaviors were confirmed by manual probes - tests/ - severity: minor
-10. HookAdapter never reports working or idle and drops the Notification message; real hook payload shape still unconfirmed (architecture.md open question) - src/agenthubctl/adapters/collectors/hook_adapter.py:10-15 - severity: minor
-11. list() trusts every *.json in the status dir: one corrupt file makes GET /agents return 500 (probed), and a foreign file whose content names another agent produces a duplicate entry (probed) - src/agenthubctl/adapters/store/file_store.py:57-61 - severity: minor
-13. Test hygiene: many names lack <when>; several tests assert more than one thing - tests/ - severity: minor
-15. starlette is imported directly but only present as a transitive dependency of connexion; declare it - src/agenthubctl/api/app.py:6, pyproject.toml - severity: minor
-19. Image build ignores uv.lock (`pip install .` resolves fresh, unpinned versions) and runs as root - Dockerfile - severity: minor
-20. CI runs `uv run pytest` without coverage or `--cov-fail-under=80`, so the 80% gate is only enforced by this review - .github/workflows/ci.yml:27 - severity: minor
-21. `except ValueError` branches in api/app.py (lines 38-39, 49-50, 56-57) are unreachable over HTTP and untested; in report_agent_status a ValueError from StatusValue(...) would be mislabeled "Invalid agent name" if spec validation were ever bypassed - src/agenthubctl/api/app.py - severity: minor
-22. No shipped example of how an agent container sends Claude Code hooks to the hub (e.g. a hook command posting stdin to /agents/NAME/hook) - docs - severity: minor
+None.
 
 ## Result
 
 phase: review
 status: done
-output: review-checklist.md round 3 - 0 critical, 0 major, 8 minor findings (fixes 9, 10, 11, 13, 15, 19, 20, 21, 22 - follow-up)
+output: review-checklist.md round 4 - 0 critical, 0 major, 0 minor open (all 9 round-2 minor findings fixed)
 
 ## Fix History
 
@@ -89,3 +81,12 @@ output: review-checklist.md round 3 - 0 critical, 0 major, 8 minor findings (fix
 | 18 no .gitignore | minor | fixed | 5bbb65a |
 | 23 hub image installed tmux, curl and an unchecksummed ttyd binary it never uses (agent-terminal.sh is not in the image; architecture.md puts tmux+ttyd in agent containers) | major | fixed: removed from Dockerfile; image build not verified (no podman here) | this round |
 | 24 FR-09 test helper used `-t =agent-1` as a pane target; tmux 3.3a rejects that ("can't find pane"), exact-match pane targets need `=agent-1:`. agent-terminal.sh itself was correct (session targets) | critical (test bug, found on first tmux run) | fixed, verified (3 consecutive green runs; mutation check) | this round |
+| 9 tests for FR-04 restart, FR-06 /openapi.json, FR-07 refresh | minor | fixed, verified | round 4 |
+| 10 HookAdapter: SessionStart -> idle, UserPromptSubmit/PreToolUse -> working, Notification keeps message | minor | fixed, verified (unit + API tests, live hub probe); payload shape from documented hook input, not yet a live Claude Code invocation | round 4 |
+| 11 list() skips corrupt files, invalid names and files naming another agent (logged) | minor | fixed, verified | round 4 |
+| 13 test names follow test_<what>_<when>_<expected> | minor | fixed | round 4 |
+| 15 starlette declared as a direct dependency (>=1.6, uv.lock updated) | minor | fixed, verified | round 4 |
+| 19 image: multi-stage, `uv sync --frozen --no-dev` from uv.lock, non-root user, writable /data/status | minor | fixed; uv sync steps verified locally, image build NOT verified (no podman) | round 4 |
+| 20 coverage gate: fail_under = 80 in pyproject.toml, CI runs pytest --cov | minor | fixed, verified (gate fails a run under the threshold) | round 4 |
+| 21 api handlers: explicit name check + "Invalid status" instead of unreachable except branches | minor | fixed, verified (direct handler tests) | round 4 |
+| 22 examples/claude-code-hooks: hook-to-hub.sh, settings.json, README; script added to CI shellcheck | minor | fixed, verified end to end against a running hub; shellcheck not run locally (not installed) | round 4 |

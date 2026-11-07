@@ -78,9 +78,11 @@ agenthubctl/
 - Dependencies: domain.ports; an injected base `Path`.
 
 ### adapters.collectors.hook_adapter.HookAdapter
-- Responsibility: receives a Claude Code hook payload (Notification,
-  Stop) and reports status through the port (FR-01, FR-05
-  event-driven case).
+- Responsibility: receives a Claude Code hook payload and reports
+  status through the port (FR-01, FR-05 event-driven case):
+  SessionStart -> idle, UserPromptSubmit/PreToolUse -> working,
+  Notification -> blocked (keeping its message), Stop -> done; other
+  events are ignored. Agent-side setup: examples/claude-code-hooks/.
 - Public interface: `handle_hook_event(payload: dict) -> None`.
 - Dependencies: an injected AgentStatusPort.
 
@@ -169,9 +171,10 @@ this app).
 
 ## Open Questions
 
-- Exact Claude Code hook payload shape for Notification/Stop events -
-  needs confirming against a real hook invocation before
-  HookAdapter's parsing logic is finalized in the implement phase.
+- Exact Claude Code hook payload shape - HookAdapter relies only on
+  `hook_event_name` and, for Notification, `message` from the
+  documented hook input; still to be confirmed against a live hook
+  invocation in an agent container.
 - Which agent type is the second (poll-based) one - Codex or
   something else - and what its blocked-state heuristic looks like.
   Resolved for v1 by descoping: polling is out of scope (see
