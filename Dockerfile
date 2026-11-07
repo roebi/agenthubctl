@@ -18,9 +18,16 @@ RUN uv sync --frozen --no-dev --no-editable
 FROM python:3.14-slim
 
 ARG APP_UID=10001
-# /data/status is created owned by the app user so a fresh named volume
-# mounted there (podman_run.sh) inherits a writable owner
-RUN useradd --system --uid "${APP_UID}" --no-create-home agenthubctl \
+# - apt-get upgrade: Debian security fixes newer than the base image
+# - pip is removed: the hub runs from /app/.venv and never needs it, and pip's
+#   bundled copies of urllib3, msgpack and setuptools are flagged by Trivy
+# - /data/status is created owned by the app user so a fresh named volume
+#   mounted there (podman_run.sh) inherits a writable owner
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall -y pip \
+    && useradd --system --uid "${APP_UID}" --no-create-home agenthubctl \
     && mkdir -p /data/status \
     && chown agenthubctl /data/status
 
