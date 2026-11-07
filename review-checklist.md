@@ -95,3 +95,24 @@ pass.
 | 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default gone with PollAdapter removal) | 3ab9bbd |
 | 14 architecture.md drift | minor | fixed | b86d404 |
 | 16 duplicate requirements files | minor | fixed - REQUIREMENTS.md deleted, requirements.md is the single source | REQUIREMENTS.md removal commit |
+
+## Fix Log (2026-11-07, fix loop step 2 - first real run)
+
+The container now has Python 3.14.10 and uv (no tmux, no gh).
+
+- `uv run pytest --cov=src --cov-report=term-missing`: 40 passed, 3 skipped,
+  coverage 91% (>= 80% met). The 3 skips are the tmux integration tests for
+  fix 3 / FR-09 ("tmux not installed"), so fix 3 is still unverified.
+- `uv run ruff check src/ tests/` (ruff 0.16.5, default rules, no project
+  config) first failed with 9 errors, which would have turned CI red. Fixed
+  below; now "All checks passed!".
+
+| Fix | Severity | State |
+|---|---|---|
+| 17 ruff check fails: UP017 (timezone.utc -> UTC, 5x), B008 (typer.Option defaults -> Annotated, 2x in cli.py), PLW1510 (explicit check=False, 2x in integration test) | major (CI red) | fixed, verified (ruff clean, tests green, `agenthubctl --help` renders all options) |
+| 18 no .gitignore: __pycache__, .coverage, .ruff_cache show as untracked | minor | fixed |
+| - ruff format applied to 5 files (not enforced in CI) | style | done |
+
+Verified now: fixes 1, 2, 4, 5, 6, 7, 8, 12 (their tests run green).
+Still open: fix 3 needs tmux (the integration tests skip without it), and
+fix-loop step 3 (re-run code-review-en against the fixed code).

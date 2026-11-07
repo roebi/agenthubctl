@@ -13,9 +13,10 @@ results:
     output: apply-tdd-loop-en complete - 9/9 FRs, 22 passing tests on Python 3.14, 2 honesty corrections logged in TDD Handover-State history
   - phase: review
     status: blocked
-    output: review-checklist.md - 3 critical, 4 major, 9 minor findings (static pass); fix loop - 3 critical + 3 major fixed with tests but NOT yet run (no Python/uv/tmux in container), major 7 resolved (hook route wired; polling descoped for v1 in requirements.md)
+    output: review-checklist.md - 3 critical, 4 major, 9 minor findings (static pass); fix loop step 2 run 2026-11-07 - pytest 40 passed / 3 skipped, coverage 91%, ruff clean after new fixes 17 (ruff errors) + 18 (.gitignore). Still blocked on - fix 3 / FR-09 tmux integration tests skipped (no tmux in container), and code-review-en re-run (fix loop step 3) not done yet
 verified_clean:
-  - pytest: 22/22 passing (Python 3.14.4)
+  - pytest: 40 passed, 3 skipped (tmux tests), coverage 91% (Python 3.14.10, 2026-11-07)
+  - ruff check src tests: clean (ruff 0.16.5); ruff format: clean
   - shellcheck: clean (entrypoint.sh, podman_build.sh, podman_run.sh)
   - zizmor: clean (ci.yml, release.yml) - workflow-lint job added to CI so this stays enforced
   - bandit: 0 issues
