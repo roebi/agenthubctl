@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.14.*"
 
 [[package]]
@@ -9,6 +9,7 @@ source = { editable = "." }
 dependencies = [
     { name = "connexion", extra = ["uvicorn"] },
     { name = "pydantic" },
+    { name = "starlette" },
     { name = "typer" },
 ]
 
@@ -23,6 +24,7 @@ dev = [
 requires-dist = [
     { name = "connexion", extras = ["uvicorn"], specifier = ">=3.3.0" },
     { name = "pydantic", specifier = ">=2.13" },
+    { name = "starlette", specifier = ">=1.6" },
     { name = "typer", specifier = ">=0.27.1" },
 ]
 
