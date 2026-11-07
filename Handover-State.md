@@ -30,6 +30,6 @@ known_gaps:
   - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter and its tests removed, recoverable from git history
   - HookAdapter maps SessionStart/UserPromptSubmit/PreToolUse/Notification/Stop from the documented hook input - not yet confirmed against a live Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
-  - remote origin set to https://github.com/roebi/agenthubctl but not pushed yet - no v0.1.0 tag, release.yml has never actually run
+  - pushed to https://github.com/roebi/agenthubctl (repo recreated 2026-11-07 after removing AI trailers from history); no v0.1.0 tag, release.yml has never actually run
   - release-sw-project-en not started
   - sw-dev-agent-framework consolidation explicitly deferred by user to a later session
