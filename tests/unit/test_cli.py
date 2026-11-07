@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from typer.testing import CliRunner
 
@@ -5,18 +7,26 @@ from agenthubctl.cli import app, build_app, parse_terminal_endpoints
 
 runner = CliRunner()
 
+# typer/rich color the help output when they detect CI (e.g. GITHUB_ACTIONS),
+# which puts escape codes inside words like "--status-dir"
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def plain(text):
+    return ANSI_ESCAPE.sub("", text)
+
 
 def test_cli_with_help_flag_exits_zero_and_lists_status_dir():
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    assert "status-dir" in result.output
+    assert "status-dir" in plain(result.output)
 
 
 def test_cli_with_help_flag_documents_terminal_option():
     result = runner.invoke(app, ["--help"])
 
-    assert "--terminal" in result.output
+    assert "--terminal" in plain(result.output)
 
 
 def test_cli_with_serve_subcommand_word_exits_with_usage_error():

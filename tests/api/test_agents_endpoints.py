@@ -214,7 +214,7 @@ def test_dashboard_when_rendering_attach_uses_a_real_link_not_a_popup(client):
 def test_dashboard_when_terminal_url_is_not_http_never_links_it(client):
     html = client.get("/").text
 
-    assert 'new URL(url).protocol' in html
+    assert "new URL(url).protocol" in html
 
 
 def test_dashboard_when_showing_updated_uses_yyyymmdd_hhmi_local_time(client):
