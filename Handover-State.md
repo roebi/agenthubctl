@@ -11,6 +11,9 @@ results:
   - phase: implement
     status: done
     output: apply-tdd-loop-en complete - 9/9 FRs, 22 passing tests on Python 3.14, 2 honesty corrections logged in TDD Handover-State history
+  - phase: review
+    status: blocked
+    output: review-checklist.md - 3 critical, 4 major, 9 minor findings; static parts only (review container had no Python/uv), coverage + ruff + test runs still open
 verified_clean:
   - pytest: 22/22 passing (Python 3.14.4)
   - shellcheck: clean (entrypoint.sh, podman_build.sh, podman_run.sh)
@@ -24,5 +27,5 @@ known_gaps:
   - HookAdapter only handles Notification/Stop - guessed payload shape, never confirmed against a real Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
   - repo never pushed to GitHub - no remote, no v0.1.0 tag, release.yml has never actually run
-  - code-review-en and release-sw-project-en phases not started (no-self-merge rule per orchestrate-sw-dev-en)
+  - code-review-en blocked (static pass done, see review-checklist.md); release-sw-project-en not started (no-self-merge rule per orchestrate-sw-dev-en)
   - repo name / committer identity / sw-dev-agent-framework consolidation explicitly deferred by user to a later session
