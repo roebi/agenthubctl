@@ -16,7 +16,7 @@ results:
     output: review-checklist.md round 4 - 0 critical, 0 major, 0 minor open; fix 3 verified with tmux 3.3a after fix 24; all 9 minor findings fixed; pytest 59 passed / 0 skipped, coverage 96%, ruff clean
   - phase: release
     status: pending
-    output: not started - decided: name stays agenthubctl, user creates the GitHub repo, identity Robert Halter <roebi@users.noreply.github.com> (all 92 commits already carry it); open: PyPI vs GitHub Release only, GitHub repo URL
+    output: not started - decided: name stays agenthubctl, user creates the GitHub repo, identity Robert Halter <roebi@users.noreply.github.com> (all commits carry it), remote origin https://github.com/roebi/agenthubctl (created by the user, empty, first push by the user); open: PyPI vs GitHub Release only
 verified_clean:
   - pytest: 61 passed, 0 skipped, coverage 96%, 80% gate enforced via fail_under (Python 3.14.10, tmux 3.3a, 2026-11-07)
   - ruff check src tests: clean (ruff 0.16.5); ruff format: clean
@@ -30,6 +30,6 @@ known_gaps:
   - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter and its tests removed, recoverable from git history
   - HookAdapter maps SessionStart/UserPromptSubmit/PreToolUse/Notification/Stop from the documented hook input - not yet confirmed against a live Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
-  - repo never pushed to GitHub - no remote, no v0.1.0 tag, release.yml has never actually run
+  - remote origin set to https://github.com/roebi/agenthubctl but not pushed yet - no v0.1.0 tag, release.yml has never actually run
   - release-sw-project-en not started
   - sw-dev-agent-framework consolidation explicitly deferred by user to a later session
