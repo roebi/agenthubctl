@@ -3,6 +3,8 @@ name = "agenthubctl"
 version = "0.1.0"
 description = "Hexagonal status and terminal-attach control hub for n parallel coding agent containers."
 requires-python = "==3.14.*"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "connexion[uvicorn]>=3.3.0",
     "pydantic>=2.13",
