@@ -25,8 +25,8 @@ verified_clean:
   - bandit: 0 issues (re-run 2026-11-07)
   - all GitHub Actions SHA-pinned and re-verified against actual release pages, not just the API
 known_gaps:
-  - Dockerfile built and run by the user with podman on the host (2026-11-07); fix 25 (IPv6/localhost) needs a rebuild + re-run there; hub image only (no tmux/ttyd), multi-stage uv sync --frozen, non-root (fix 19); agent containers must bring tmux + ttyd + agent-terminal.sh (+ examples/claude-code-hooks) themselves
-  - no end-to-end test of the attach path (container -> /agents/{name}/terminal -> real ttyd connection)
+  - Dockerfile built and run by the user with podman on the host (2026-11-07); fixes 25 (IPv6/localhost) and 28 (attach link) confirmed there; hub image only (no tmux/ttyd), multi-stage uv sync --frozen, non-root (fix 19); agent containers must bring tmux + ttyd + agent-terminal.sh (+ examples/claude-code-hooks) themselves
+  - attach path verified manually on the host with examples/demo-agent (dashboard -> real ttyd terminal -> agent-status back to the dashboard, 2026-11-07); no automated end-to-end test of it
   - interval-based polling descoped for v1 (requirements.md Out of Scope) - PollAdapter and its tests removed, recoverable from git history
   - HookAdapter maps SessionStart/UserPromptSubmit/PreToolUse/Notification/Stop from the documented hook input - not yet confirmed against a live Claude Code hook invocation
   - ttyd has no access control - explicitly out of scope for v1 in requirements.md, worth revisiting before any non-local deployment
