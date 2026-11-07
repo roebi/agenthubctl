@@ -17,6 +17,8 @@ import pytest
 
 SCRIPT = Path(__file__).resolve().parents[2] / "agent-terminal.sh"
 SESSION = "agent-1"
+# exact-match pane target: tmux 3.3a rejects "=name" without ":" for a pane
+PANE = f"={SESSION}:"
 TTYD_PORT = "7681"
 TMUX_DEFAULT_HISTORY_LIMIT = 2000
 LINES_PRINTED = TMUX_DEFAULT_HISTORY_LIMIT + 1000
@@ -60,7 +62,7 @@ def tmux(env, *args):
 def wait_for_pane_text(env, text):
     deadline = time.monotonic() + WAIT_TIMEOUT_SECONDS
     while time.monotonic() < deadline:
-        if text in tmux(env, "capture-pane", "-p", "-S", "-", "-t", f"={SESSION}"):
+        if text in tmux(env, "capture-pane", "-p", "-S", "-", "-t", PANE):
             return
         time.sleep(WAIT_STEP_SECONDS)
     raise AssertionError(f"{text!r} never appeared in the tmux pane")
@@ -98,7 +100,7 @@ def test_agent_terminal_keeps_scrollback_beyond_tmux_default_history(tmux_env):
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sh", "-c", command)
     wait_for_pane_text(tmux_env, str(LINES_PRINTED))
 
-    history = tmux(tmux_env, "capture-pane", "-p", "-S", "-", "-t", f"={SESSION}")
+    history = tmux(tmux_env, "capture-pane", "-p", "-S", "-", "-t", PANE)
     lines = [line for line in history.splitlines() if line.strip()]
 
     assert lines[0] == "1"
@@ -108,14 +110,10 @@ def test_agent_terminal_keeps_scrollback_beyond_tmux_default_history(tmux_env):
 @requires_tmux
 def test_agent_terminal_when_run_again_reuses_the_running_agent(tmux_env):
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS)
-    first_pid = tmux(
-        tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}"
-    )
+    first_pid = tmux(tmux_env, "display-message", "-p", "-t", PANE, "#{pane_pid}")
 
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS)
-    second_pid = tmux(
-        tmux_env, "display-message", "-p", "-t", f"={SESSION}", "#{pane_pid}"
-    )
+    second_pid = tmux(tmux_env, "display-message", "-p", "-t", PANE, "#{pane_pid}")
 
     assert second_pid == first_pid
     assert tmux(tmux_env, "list-sessions", "-F", "#{session_name}").split() == [SESSION]
