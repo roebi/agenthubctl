@@ -94,3 +94,4 @@ pass.
 | 8 terminal_port=None | minor | fixed as a side effect of 4 | 3ab9bbd |
 | 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default gone with PollAdapter removal) | 3ab9bbd |
 | 14 architecture.md drift | minor | fixed | b86d404 |
+| 16 duplicate requirements files | minor | fixed - REQUIREMENTS.md deleted, requirements.md is the single source | REQUIREMENTS.md removal commit |
