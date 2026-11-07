@@ -13,7 +13,7 @@ results:
     output: apply-tdd-loop-en complete - 9/9 FRs, 22 passing tests on Python 3.14, 2 honesty corrections logged in TDD Handover-State history
   - phase: review
     status: blocked
-    output: review-checklist.md - 3 critical, 4 major, 9 minor findings; static parts only (review container had no Python/uv), coverage + ruff + test runs still open
+    output: review-checklist.md - 3 critical, 4 major, 9 minor findings (static pass); fix loop - 3 critical + 3 major fixed with tests but NOT yet run (no Python/uv/tmux in container), major 7 partial (PollAdapter unwired, poll agent type undecided)
 verified_clean:
   - pytest: 22/22 passing (Python 3.14.4)
   - shellcheck: clean (entrypoint.sh, podman_build.sh, podman_run.sh)

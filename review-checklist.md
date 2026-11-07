@@ -74,3 +74,23 @@ re-verified here.
 phase: review
 status: blocked
 output: review-checklist.md - 3 critical, 4 major, 9 minor findings (static parts only; coverage, ruff and test runs still open)
+
+## Fix Log (2026-11-07, fix loop step 1 - NOT yet re-verified)
+
+Tests were written alongside each fix, but nothing could be run in this
+container (no Python, uv, pytest, ruff, tmux). Loop steps 2 (re-run tests)
+and 3 (re-run this review) are still open; status stays blocked until they
+pass.
+
+| Fix | Severity | State | Commit |
+|---|---|---|---|
+| 1 stored XSS | critical | fixed, unverified | 3ab9bbd |
+| 2 FR-08 CLI wiring (--terminal) | critical | fixed, unverified | 1ea42d7 |
+| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, unverified | dd267b5 |
+| 4 module globals in api/app.py | major | fixed, unverified | 3ab9bbd |
+| 5 NFR-04 shared tmp file | major | fixed, unverified | 19e918e |
+| 6 agent name validation | major | fixed, unverified | 19e918e, 3ab9bbd |
+| 7 FR-05 collectors wired | major | PARTIAL: hook route done (3ab9bbd); PollAdapter still unwired - needs a decision on the poll-based agent type | - |
+| 8 terminal_port=None | minor | fixed as a side effect of 4 | 3ab9bbd |
+| 12 magic number in dashboard | minor | REFRESH_INTERVAL_MS constant (poll_adapter default still open) | 3ab9bbd |
+| 14 architecture.md drift | minor | fixed | b86d404 |
