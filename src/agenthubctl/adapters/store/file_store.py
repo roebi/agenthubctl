@@ -1,9 +1,14 @@
+import logging
 import os
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from agenthubctl.domain.models import AgentStatus, StatusValue, is_valid_agent_name
+
+_log = logging.getLogger(__name__)
 
 
 class FileStatusStore:
@@ -55,7 +60,25 @@ class FileStatusStore:
         return AgentStatus.model_validate_json(path.read_text())
 
     def list(self) -> list[AgentStatus]:
-        return [
-            AgentStatus.model_validate_json(p.read_text())
-            for p in sorted(self._base_dir.glob("*.json"))
-        ]
+        statuses = []
+        for path in sorted(self._base_dir.glob("*.json")):
+            status = self._read_listed(path)
+            if status is not None:
+                statuses.append(status)
+        return statuses
+
+    def _read_listed(self, path: Path) -> AgentStatus | None:
+        # Only files this store could have written are listed: one corrupt
+        # or foreign file must not break GET /agents or duplicate an agent.
+        if not is_valid_agent_name(path.stem):
+            _log.warning("skipping status file with invalid name: %s", path)
+            return None
+        try:
+            status = AgentStatus.model_validate_json(path.read_text())
+        except OSError, ValidationError:
+            _log.warning("skipping unreadable status file: %s", path)
+            return None
+        if status.name != path.stem:
+            _log.warning("skipping status file naming another agent: %s", path)
+            return None
+        return status

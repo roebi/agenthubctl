@@ -77,7 +77,7 @@ def test_agent_terminal_without_command_exits_with_usage_error(tmp_path):
 
 
 @requires_tmux
-def test_agent_terminal_serves_a_writable_attach_to_the_existing_session(tmux_env):
+def test_agent_terminal_when_started_serves_a_writable_attach_to_the_session(tmux_env):
     result = run_script(
         tmux_env, SESSION, TTYD_PORT, "--", "sleep", AGENT_LIFETIME_SECONDS
     )
@@ -95,7 +95,9 @@ def test_agent_terminal_serves_a_writable_attach_to_the_existing_session(tmux_en
 
 
 @requires_tmux
-def test_agent_terminal_keeps_scrollback_beyond_tmux_default_history(tmux_env):
+def test_agent_terminal_when_agent_prints_more_than_default_history_keeps_all_lines(
+    tmux_env,
+):
     command = f"seq 1 {LINES_PRINTED}; sleep {AGENT_LIFETIME_SECONDS}"
     run_script(tmux_env, SESSION, TTYD_PORT, "--", "sh", "-c", command)
     wait_for_pane_text(tmux_env, str(LINES_PRINTED))

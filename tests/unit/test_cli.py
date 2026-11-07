@@ -6,20 +6,20 @@ from agenthubctl.cli import app, build_app, parse_terminal_endpoints
 runner = CliRunner()
 
 
-def test_cli_help_works():
+def test_cli_with_help_flag_exits_zero_and_lists_status_dir():
     result = runner.invoke(app, ["--help"])
 
     assert result.exit_code == 0
     assert "status-dir" in result.output
 
 
-def test_cli_help_documents_terminal_option():
+def test_cli_with_help_flag_documents_terminal_option():
     result = runner.invoke(app, ["--help"])
 
     assert "--terminal" in result.output
 
 
-def test_cli_rejects_unexpected_subcommand_name():
+def test_cli_with_serve_subcommand_word_exits_with_usage_error():
     # documents real Typer behavior: a single @app.command() collapses to a
     # default command with no subcommand name - "serve" is NOT a valid word
     # to pass on the command line, unlike architecture.md originally implied
@@ -36,7 +36,7 @@ def test_cli_with_malformed_terminal_option_exits_with_usage_error(tmp_path):
     assert result.exit_code == 2
 
 
-def test_parse_terminal_endpoints_returns_name_to_url_mapping():
+def test_parse_terminal_endpoints_with_valid_values_returns_name_to_url_mapping():
     endpoints = parse_terminal_endpoints(
         ["web-dashboard=http://127.0.0.1:7681", "data-pipeline=https://host:7682/"]
     )

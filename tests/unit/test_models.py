@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from agenthubctl.domain.models import AgentStatus, StatusValue
 
 
-def test_agent_status_holds_name_status_timestamp_and_optional_message():
+def test_agent_status_when_given_all_fields_holds_them():
     ts = datetime.now(UTC)
 
     status = AgentStatus(
@@ -19,7 +19,7 @@ def test_agent_status_holds_name_status_timestamp_and_optional_message():
     assert status.message == "waiting for permission to deploy"
 
 
-def test_agent_status_message_defaults_to_none():
+def test_agent_status_without_message_defaults_it_to_none():
     status = AgentStatus(
         name="data-pipeline",
         status=StatusValue.WORKING,
@@ -29,5 +29,5 @@ def test_agent_status_message_defaults_to_none():
     assert status.message is None
 
 
-def test_status_value_has_exactly_the_four_defined_states():
+def test_status_value_when_enumerated_has_exactly_four_states():
     assert {v.value for v in StatusValue} == {"working", "blocked", "idle", "done"}

@@ -6,17 +6,29 @@ from connexion.resolver import Resolver
 from starlette.responses import HTMLResponse
 
 from agenthubctl.adapters.collectors.hook_adapter import HookAdapter
-from agenthubctl.domain.models import StatusValue
+from agenthubctl.domain.models import StatusValue, is_valid_agent_name
 from agenthubctl.domain.ports import AgentStatusPort, AgentTerminalAccessPort
 
 _SPEC_PATH = Path(__file__).parent / "openapi.json"
 _DASHBOARD_PATH = Path(__file__).parent.parent / "dashboard" / "static" / "index.html"
 
 
-def _invalid_name(name: str) -> connexion.ProblemException:
-    return connexion.ProblemException(
-        status=400, title="Invalid agent name", detail=repr(name)
-    )
+def _require_valid_name(name: str) -> None:
+    # Connexion already rejects bad names via the spec pattern; this repeats
+    # the check so a handler never passes an unchecked name to the store.
+    if not is_valid_agent_name(name):
+        raise connexion.ProblemException(
+            status=400, title="Invalid agent name", detail=repr(name)
+        )
+
+
+def _parse_status(value: object) -> StatusValue:
+    try:
+        return StatusValue(value)
+    except ValueError:
+        raise connexion.ProblemException(
+            status=400, title="Invalid status", detail=repr(value)
+        ) from None
 
 
 def _make_handlers(
@@ -33,28 +45,21 @@ def _make_handlers(
         return [s.model_dump(mode="json") for s in status_port.list()]
 
     def get_agent(name: str):
-        try:
-            status = status_port.get(name)
-        except ValueError:
-            raise _invalid_name(name) from None
+        _require_valid_name(name)
+        status = status_port.get(name)
         if status is None:
             raise connexion.ProblemException(status=404, title="Agent not found")
         return status.model_dump(mode="json")
 
     def report_agent_status(name: str, body: dict):
-        try:
-            status_port.report(
-                name, StatusValue(body["status"]), message=body.get("message")
-            )
-        except ValueError:
-            raise _invalid_name(name) from None
+        _require_valid_name(name)
+        status = _parse_status(body.get("status"))
+        status_port.report(name, status, message=body.get("message"))
         return None, 204
 
     def report_agent_hook(name: str, body: dict):
-        try:
-            HookAdapter(agent_id=name, status_port=status_port).handle_hook_event(body)
-        except ValueError:
-            raise _invalid_name(name) from None
+        _require_valid_name(name)
+        HookAdapter(agent_id=name, status_port=status_port).handle_hook_event(body)
         return None, 204
 
     def get_agent_terminal(name: str):
