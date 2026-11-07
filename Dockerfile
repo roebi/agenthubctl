@@ -9,7 +9,8 @@ FROM python:3.14-slim AS build
 RUN pip install --no-cache-dir uv==0.13.7
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
-COPY pyproject.toml uv.lock ./
+# README.md and LICENSE are referenced by pyproject.toml (readme, license-files)
+COPY pyproject.toml uv.lock README.md LICENSE ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
