@@ -37,6 +37,18 @@ function textCell(text) {
   return td;
 }
 
+// "YYYYMMDD HHMI" in the browser's local time, e.g. "20261107 1721"; the API
+// itself keeps the ISO 8601 timestamp.
+function formatUpdated(isoTimestamp) {
+  const d = new Date(isoTimestamp);
+  if (Number.isNaN(d.getTime())) {
+    return "";
+  }
+  const pad = (n) => String(n).padStart(2, "0");
+  const date = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  return `${date} ${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
 // Terminal URLs are fixed when the hub starts (--terminal), so each agent's
 // URL is looked up once and cached; null means "no terminal configured".
 const terminalUrls = new Map();
@@ -77,7 +89,7 @@ function renderRow(agent) {
   tr.appendChild(statusTd);
 
   tr.appendChild(textCell(agent.message ?? ""));
-  tr.appendChild(textCell(new Date(agent.timestamp).toLocaleTimeString()));
+  tr.appendChild(textCell(formatUpdated(agent.timestamp)));
 
   const attachTd = document.createElement("td");
   const url = terminalUrls.get(agent.name);

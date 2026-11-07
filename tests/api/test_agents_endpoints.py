@@ -215,3 +215,14 @@ def test_dashboard_when_terminal_url_is_not_http_never_links_it(client):
     html = client.get("/").text
 
     assert 'new URL(url).protocol' in html
+
+
+def test_dashboard_when_showing_updated_uses_yyyymmdd_hhmi_local_time(client):
+    # the API keeps ISO 8601; the dashboard shows "20261107 1721" in the
+    # browser's local time
+    html = client.get("/").text
+
+    assert "function formatUpdated(" in html
+    assert "formatUpdated(agent.timestamp)" in html
+    assert "toLocaleTimeString" not in html
+    assert "getUTC" not in html

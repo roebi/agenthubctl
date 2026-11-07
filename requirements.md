@@ -49,6 +49,14 @@ NFR-05: Maintainability - the status persistence mechanism must be
         replaceable without changing the HTTP interface or the
         status-reporting mechanisms.
 
+## Planned for the Next Version
+
+- Control agents through the OpenAPI interface, not only observe them:
+  e.g. send input to an agent's terminal session (answer a blocked agent,
+  send a prompt), so the use cases "for agents" and "for automation" can
+  act, not just read. Decided 2026-11-07; to be specified in a
+  gather-requirements-en round for that version.
+
 ## Out of Scope
 
 - Spawning, stopping, or otherwise managing the lifecycle of agent

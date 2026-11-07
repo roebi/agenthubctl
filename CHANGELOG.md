@@ -17,8 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code hook support: SessionStart, UserPromptSubmit, PreToolUse,
   Notification (with its message) and Stop are mapped to statuses; other
   events are ignored.
-- Web dashboard listing all agents, refreshing every 3 seconds, with an
-  attach link per agent that opens its live terminal in a new tab.
+- Web dashboard listing all agents, refreshing every 3 seconds, with the
+  last update shown as `YYYYMMDD HHMI` in the browser's local time (the API
+  keeps ISO 8601) and an attach link per agent that opens its live terminal
+  in a new tab.
 - `agent-terminal.sh` for agent containers: runs the agent in tmux with a
   50000-line scrollback and serves the same session through ttyd, so
   re-attaching rejoins the session instead of starting a new shell.

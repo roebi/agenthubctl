@@ -21,7 +21,7 @@ attach to any agent's live terminal in your browser.
 So "controlling" an agent today means: the API tells you **which** agent
 needs attention and **why**, and a human acts on it through the attached
 terminal. Acting through the API itself (answering a blocked agent, sending
-a prompt) is a possible next step, not part of v0.1.0.
+a prompt) is planned for the next version.
 
 ## Use cases
 
@@ -78,7 +78,8 @@ while not all(a["status"] == "done" for a in statuses()):
 ### For humans
 
 Open the dashboard at `http://localhost:8000/`. It lists every agent with its
-status, message and last update, and refreshes every 3 seconds. Click
+status, message and last update (`YYYYMMDD HHMI` in your local time, e.g.
+`20261107 1721`), and refreshes every 3 seconds. Click
 **attach** to open that agent's terminal in a new browser tab - the live
 session, with its full scrollback, where you can type: answer the question
 it is blocked on, approve a step, or take over. Closing the tab and
