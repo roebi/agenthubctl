@@ -52,8 +52,15 @@ def serve(
         Path, typer.Option(help="Directory holding one JSON status file per agent.")
     ] = Path("./status"),
     host: Annotated[
-        str, typer.Option(help="Host to bind the HTTP server to.")
-    ] = "127.0.0.1",
+        str,
+        typer.Option(
+            help=(
+                "Host to bind the HTTP server to. 'localhost' listens on both "
+                "127.0.0.1 and ::1; an empty value listens on every address "
+                "(IPv4 and IPv6)."
+            )
+        ),
+    ] = "localhost",
     port: Annotated[int, typer.Option(help="Port to bind the HTTP server to.")] = 8000,
     terminal: Annotated[
         list[str] | None,

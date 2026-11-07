@@ -86,7 +86,8 @@ output: review-checklist.md round 4 - 0 critical, 0 major, 0 minor open (all 9 r
 | 11 list() skips corrupt files, invalid names and files naming another agent (logged) | minor | fixed, verified | round 4 |
 | 13 test names follow test_<what>_<when>_<expected> | minor | fixed | round 4 |
 | 15 starlette declared as a direct dependency (>=1.6, uv.lock updated) | minor | fixed, verified | round 4 |
-| 19 image: multi-stage, `uv sync --frozen --no-dev` from uv.lock, non-root user, writable /data/status | minor | fixed; uv sync steps verified locally, image build NOT verified (no podman) | round 4 |
+| 19 image: multi-stage, `uv sync --frozen --no-dev` from uv.lock, non-root user, writable /data/status | minor | fixed, verified: user built and ran the image with podman on the host (2026-11-07) | round 4 |
 | 20 coverage gate: fail_under = 80 in pyproject.toml, CI runs pytest --cov | minor | fixed, verified (gate fails a run under the threshold) | round 4 |
 | 21 api handlers: explicit name check + "Invalid status" instead of unreachable except branches | minor | fixed, verified (direct handler tests) | round 4 |
 | 22 examples/claude-code-hooks: hook-to-hub.sh, settings.json, README; script added to CI shellcheck | minor | fixed, verified end to end against a running hub; shellcheck not run locally (not installed) | round 4 |
+| 25 hub answered only on IPv4: http://localhost:8000 failed on the host (Fedora resolves localhost to ::1 first) while http://127.0.0.1:8000 worked. Found by the user on the first podman run. entrypoint.sh now binds every address (empty host), CLI default is "localhost" (127.0.0.1 and ::1); "::" alone is not dual-stack because asyncio sets IPV6_V6ONLY | major (found after round 4, fixed) | fixed, verified by tests/integration/test_listen_addresses.py; rebuilt image not yet re-run by the user | after round 4 |
