@@ -199,3 +199,19 @@ def test_report_status_handler_when_status_bypasses_spec_validation_raises_400(
         make_handlers(tmp_path)["report_agent_status"]("web", {"status": "sleeping"})
 
     assert (raised.value.status, raised.value.title) == (400, "Invalid status")
+
+
+def test_dashboard_when_rendering_attach_uses_a_real_link_not_a_popup(client):
+    # window.open() after an awaited fetch is no longer a user gesture, so
+    # browsers block it silently - attach must be a plain link to the URL
+    html = client.get("/").text
+
+    assert "window.open" not in html
+    assert 'link.target = "_blank"' in html
+    assert 'link.rel = "noopener noreferrer"' in html
+
+
+def test_dashboard_when_terminal_url_is_not_http_never_links_it(client):
+    html = client.get("/").text
+
+    assert 'new URL(url).protocol' in html

@@ -15,6 +15,7 @@
   .done { background: #1e3a4a; color: #80c0ff; }
   a.attach { color: #7fb0ff; text-decoration: none; }
   a.attach:hover { text-decoration: underline; }
+  .no-terminal { color: #666; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -36,13 +37,29 @@ function textCell(text) {
   return td;
 }
 
-async function openTerminal(name) {
-  const res = await fetch(`/agents/${encodeURIComponent(name)}/terminal`);
-  if (!res.ok) {
+// Terminal URLs are fixed when the hub starts (--terminal), so each agent's
+// URL is looked up once and cached; null means "no terminal configured".
+const terminalUrls = new Map();
+
+function isHttpUrl(url) {
+  try {
+    return ["http:", "https:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
+async function resolveTerminal(name) {
+  if (terminalUrls.has(name)) {
     return;
   }
-  const { url } = await res.json();
-  window.open(url, "_blank", "noopener");
+  const res = await fetch(`/agents/${encodeURIComponent(name)}/terminal`);
+  if (res.ok) {
+    const { url } = await res.json();
+    terminalUrls.set(name, isHttpUrl(url) ? url : null);
+  } else if (res.status === 404) {
+    terminalUrls.set(name, null);
+  }
 }
 
 function renderRow(agent) {
@@ -63,15 +80,21 @@ function renderRow(agent) {
   tr.appendChild(textCell(new Date(agent.timestamp).toLocaleTimeString()));
 
   const attachTd = document.createElement("td");
-  const link = document.createElement("a");
-  link.className = "attach";
-  link.href = "#";
-  link.textContent = "attach";
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    openTerminal(agent.name);
-  });
-  attachTd.appendChild(link);
+  const url = terminalUrls.get(agent.name);
+  if (url) {
+    // a plain link opened by the browser itself: opening a tab from script
+    // after an awaited fetch is not a user gesture and is blocked as a popup
+    const link = document.createElement("a");
+    link.className = "attach";
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "attach";
+    attachTd.appendChild(link);
+  } else {
+    attachTd.className = "no-terminal";
+    attachTd.textContent = "no terminal";
+  }
   tr.appendChild(attachTd);
   return tr;
 }
@@ -83,6 +106,7 @@ async function refresh() {
   }
   const agents = await res.json();
   agents.sort((a, b) => a.name.localeCompare(b.name));
+  await Promise.all(agents.map((agent) => resolveTerminal(agent.name)));
   document.querySelector("#agents tbody").replaceChildren(...agents.map(renderRow));
 }
 
