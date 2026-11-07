@@ -62,7 +62,7 @@
     "/agents/{name}/hook": {
       "post": {
         "operationId": "report_agent_hook",
-        "description": "Event-driven status collection (FR-05): accepts a raw Claude Code hook payload (Notification, Stop) as sent on the hook's stdin and translates it into a status. Unknown events are accepted and ignored.",
+        "description": "Event-driven status collection (FR-05): accepts a raw Claude Code hook payload as sent on the hook's stdin and translates it into a status: SessionStart -> idle, UserPromptSubmit and PreToolUse -> working, Notification -> blocked (with its message), Stop -> done. Other events are accepted and ignored.",
         "parameters": [{ "$ref": "#/components/parameters/AgentName" }],
         "requestBody": {
           "required": true,
