@@ -1,11 +1,12 @@
 # Code Review Checklist
 
 Skill: code-review-en
-Round: 2 (re-review after the round-1 fix loop)
-Reviewed commit: 57ecb4c (main), plus fix 23 below
+Round: 3 (fix 3 verified - first run with tmux)
+Reviewed commit: f3f5837 (main), plus fix 24 below
 Date: 2026-11-07
-Environment: Python 3.14.10, uv, ruff 0.16.5, bandit (via uvx). No tmux,
-no shellcheck, no podman in this container. Round 1 (static only, commit
+Environment: Python 3.14.10, uv, ruff 0.16.5, tmux 3.3a. No podman in this
+container. Round 2 (commit 57ecb4c + fix 23) found the same state minus the
+tmux run. Round 1 (static only, commit
 62fd50f) is in git history; its fixes are summarized under Fix History.
 
 ## Requirements Coverage
@@ -20,7 +21,7 @@ no shellcheck, no podman in this container. Round 1 (static only, commit
 | FR-06 | partial | yes | all endpoints exercised through the spec-routed app; GET /openapi.json returns 200 in a manual probe, no test (fix 9) |
 | FR-07 | partial | yes | dashboard served, XSS-safe rendering asserted; auto-refresh not asserted (fix 9) |
 | FR-08 | yes | yes | test_build_app_when_terminal_configured_serves_its_url (real CLI wiring), terminal 200/404 API tests, --terminal parsing incl. javascript: rejection; AGENTHUBCTL_TERMINALS env var splitting verified by manual probe |
-| FR-09 | yes | NOT RUN | 3 of 4 tests in tests/integration/test_agent_terminal.py skip ("tmux not installed"); only the usage-error test ran (fix 3) |
+| FR-09 | yes | yes | all 4 tests in tests/integration/test_agent_terminal.py run against real tmux 3.3a (after fix 24); scrollback test verified to fail with AGENT_TERMINAL_HISTORY_LIMIT=2000 |
 
 ## Architecture Compliance
 
@@ -31,10 +32,10 @@ no shellcheck, no podman in this container. Round 1 (static only, commit
 
 ## Test Quality
 
-- [x] Every FR has at least one test (FR-09 tests exist but are not yet executed, see fix 3)
+- [x] Every FR has at least one test, and all of them run and pass
 - [ ] Tests use descriptive names: test_<what>_<when>_<expected> - many still omit <when> (fix 13)
 - [x] No test depends on execution order
-- [x] Coverage >= 80% - 91% (`uv run pytest --cov=src --cov-report=term-missing`: 40 passed, 3 skipped)
+- [x] Coverage >= 80% - 91% (`uv run pytest --cov=src --cov-report=term-missing`: 43 passed, 0 skipped)
 
 ## Security
 
@@ -53,7 +54,6 @@ no shellcheck, no podman in this container. Round 1 (static only, commit
 
 ## Required Fixes (open)
 
-3. FR-09 integration tests never executed - tmux missing in the review container, 3 tests skip. Fixed in code in round 1; needs one green run with tmux - tests/integration/test_agent_terminal.py - severity: critical (unverified)
 9. Add tests: FR-04 restart (second FileStatusStore on the same dir), FR-06 GET /openapi.json served, FR-07 dashboard contains the refresh loop - all three behaviors were confirmed by manual probes - tests/ - severity: minor
 10. HookAdapter never reports working or idle and drops the Notification message; real hook payload shape still unconfirmed (architecture.md open question) - src/agenthubctl/adapters/collectors/hook_adapter.py:10-15 - severity: minor
 11. list() trusts every *.json in the status dir: one corrupt file makes GET /agents return 500 (probed), and a foreign file whose content names another agent produces a duplicate entry (probed) - src/agenthubctl/adapters/store/file_store.py:57-61 - severity: minor
@@ -67,8 +67,8 @@ no shellcheck, no podman in this container. Round 1 (static only, commit
 ## Result
 
 phase: review
-status: blocked
-output: review-checklist.md round 2 - 1 critical (fix 3, unverified only: needs a tmux run), 0 major open (fix 23 found and fixed this round), 8 minor findings
+status: done
+output: review-checklist.md round 3 - 0 critical, 0 major, 8 minor findings (fixes 9, 10, 11, 13, 15, 19, 20, 21, 22 - follow-up)
 
 ## Fix History
 
@@ -76,7 +76,7 @@ output: review-checklist.md round 2 - 1 critical (fix 3, unverified only: needs 
 |---|---|---|---|
 | 1 stored XSS in dashboard | critical | fixed, verified (tests green) | 3ab9bbd |
 | 2 FR-08 CLI wiring (--terminal) | critical | fixed, verified | 1ea42d7 |
-| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, UNVERIFIED (tmux missing) | dd267b5 |
+| 3 FR-09 test (agent-terminal.sh + tmux integration tests) | critical | fixed, verified in round 3 (4/4 pass with tmux 3.3a, after fix 24) | dd267b5 |
 | 4 module globals in api/app.py | major | fixed, verified | 3ab9bbd |
 | 5 NFR-04 shared tmp file | major | fixed, verified | 19e918e |
 | 6 agent name validation | major | fixed, verified (incl. HTTP 400 probes) | 19e918e, 3ab9bbd |
@@ -88,3 +88,4 @@ output: review-checklist.md round 2 - 1 critical (fix 3, unverified only: needs 
 | 17 ruff check failed (9 errors on ruff 0.16 defaults) | major | fixed, verified | 5bbb65a |
 | 18 no .gitignore | minor | fixed | 5bbb65a |
 | 23 hub image installed tmux, curl and an unchecksummed ttyd binary it never uses (agent-terminal.sh is not in the image; architecture.md puts tmux+ttyd in agent containers) | major | fixed: removed from Dockerfile; image build not verified (no podman here) | this round |
+| 24 FR-09 test helper used `-t =agent-1` as a pane target; tmux 3.3a rejects that ("can't find pane"), exact-match pane targets need `=agent-1:`. agent-terminal.sh itself was correct (session targets) | critical (test bug, found on first tmux run) | fixed, verified (3 consecutive green runs; mutation check) | this round |
