@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 270" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <title>agenthubctl: the four status values</title>
+  <rect width="760" height="270" fill="#ffffff"/>
+  <text x="20" y="28" font-weight="bold" font-size="15">Every agent is in exactly one of four states</text>
+
+  <!-- idle -->
+  <rect x="20" y="50" width="165" height="70" rx="8" fill="#edf2f7" stroke="#4a5568" stroke-width="2"/>
+  <text x="102" y="80" text-anchor="middle" font-weight="bold" font-size="16">idle</text>
+  <text x="102" y="102" text-anchor="middle" font-size="12">started, waiting</text>
+  <!-- working -->
+  <rect x="205" y="50" width="165" height="70" rx="8" fill="#e8f1fb" stroke="#2b6cb0" stroke-width="2"/>
+  <text x="287" y="80" text-anchor="middle" font-weight="bold" font-size="16">working</text>
+  <text x="287" y="102" text-anchor="middle" font-size="12">busy, leave it alone</text>
+  <!-- blocked -->
+  <rect x="390" y="50" width="165" height="70" rx="8" fill="#fde8e8" stroke="#c53030" stroke-width="3"/>
+  <text x="472" y="80" text-anchor="middle" font-weight="bold" font-size="16">blocked</text>
+  <text x="472" y="102" text-anchor="middle" font-size="12">needs YOU - attach, answer</text>
+  <!-- done -->
+  <rect x="575" y="50" width="165" height="70" rx="8" fill="#eaf7ee" stroke="#2f855a" stroke-width="2"/>
+  <text x="657" y="80" text-anchor="middle" font-weight="bold" font-size="16">done</text>
+  <text x="657" y="102" text-anchor="middle" font-size="12">finished its turn</text>
+
+  <!-- hook lines -->
+  <text x="20" y="152" font-weight="bold">Claude Code hook that sets it:</text>
+  <text x="102" y="178" text-anchor="middle" font-size="12">SessionStart</text>
+  <text x="287" y="172" text-anchor="middle" font-size="12">UserPromptSubmit</text>
+  <text x="287" y="188" text-anchor="middle" font-size="12">PreToolUse</text>
+  <text x="472" y="172" text-anchor="middle" font-size="12">Notification</text>
+  <text x="472" y="188" text-anchor="middle" font-size="12">(its text = the message)</text>
+  <text x="657" y="178" text-anchor="middle" font-size="12">Stop</text>
+
+  <line x1="20" y1="208" x2="740" y2="208" stroke="#cbd5e0"/>
+  <text x="20" y="232" font-size="12">An agent without hooks reports the same four values itself:</text>
+  <text x="20" y="252" font-size="12" font-family="monospace">POST /agents/NAME/status   {"status": "blocked", "message": "needs approval"}</text>
+</svg>

@@ -9,6 +9,9 @@ own container. agenthubctl collects each agent's status - `working`,
 OpenAPI HTTP interface and a small web dashboard. From the dashboard you
 attach to any agent's live terminal in your browser.
 
+New here? [docs/using/using.md](https://github.com/roebi/agenthubctl/blob/main/docs/using/using.md) explains the four
+ideas, with two pictures and the commands, in a few minutes.
+
 ## What it does today, and what it does not
 
 | agenthubctl can | agenthubctl cannot (yet) |
@@ -22,6 +25,19 @@ So "controlling" an agent today means: the API tells you **which** agent
 needs attention and **why**, and a human acts on it through the attached
 terminal. Acting through the API itself (answering a blocked agent, sending
 a prompt) is planned for the next version.
+
+## Where it fits
+
+Tools in this area answer different questions. agenthubctl is a control
+plane:
+
+| Question | Layer |
+|---|---|
+| How do agents collaborate on one task? | Connection layer |
+| Which agent is stuck, how do I unblock it? | Control plane |
+| How do I keep and share my terminals? | Session workbench |
+
+All 3 can be used in parallel.
 
 ## Use cases
 
